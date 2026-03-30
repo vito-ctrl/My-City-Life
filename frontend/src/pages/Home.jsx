@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import Moroccan_Architecture from '../assets/Moroccan Architecture.pnj'
+// import Moroccan_Architecture from '../assets/Moroccan Architecture.pnj'
 
 function Home () {
     
