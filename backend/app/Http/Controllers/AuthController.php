@@ -20,8 +20,14 @@ class AuthController extends Controller
             'role' => ['required', 'in:user,admin,Organizer'],
             'age' => ['required', 'integer', 'min:13', 'max:70'],
             'city' => ['required', 'string', 'max:100'],
-            'image' => ['nullable', 'max:2048'],
+            'image' => ['nullable', 'image', 'mimes:jpg,jpeg,png', 'max:2048'],
         ]);
+
+         $imagePath = null;
+
+        if ($request->hasFile('image')) {
+            $imagePath = $request->file('image')->store('users', 'public');
+        }
 
         
         $user = User::create([
@@ -30,7 +36,7 @@ class AuthController extends Controller
             'role' => $request->role,
             'age' => $request->age,
             'city' => $request->city,
-            'image' => $request->image,
+            'image' => $imagePath,
             'password' => Hash::make($request->password),
         ]);
 
