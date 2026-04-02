@@ -19,7 +19,7 @@ return new class extends Migration
             $table->string('category');
             $table->string('location');
             $table->float('price')->default(0);
-            $table->boolean('is_free')->default(false);
+            $table->boolean('is_free')->default(false); 
             $table->string('image')->nullable();
             $table->dateTime('start_date');
             $table->dateTime('end_date');
@@ -32,6 +32,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        //
+        Schema::dropIfExists('activities');
     }
 };
