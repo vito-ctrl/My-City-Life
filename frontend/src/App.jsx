@@ -2,6 +2,10 @@ import './App.css'
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Register from './pages/auth/Register'
 import Login from './pages/auth/Login'
+import OAuthSuccess from './pages/auth/OAuthSuccess'
+import Home from './pages/Home';
+import ForgetPassword from './pages/auth/ResetPassword/ForgetPassword';
+import ResetPassword from './pages/auth/ResetPassword/ResetPassword';
 
 
 function App() {
@@ -10,10 +14,12 @@ function App() {
     <>
       <BrowserRouter>
       <Routes>
+        <Route path="/" element={<Home/>} />
         <Route path="/register" element={<Register/>} />
         <Route path="/login" element={<Login/>} />
-        {/* <Route path="/available" element={<AvailableCourses/>} />
-        <Route path="/deateals/:id" element={<DeatelsCourses/>} /> */}
+        <Route path="/oauth-success" element={<OAuthSuccess />} />
+        <Route path="/ForgetPassword" element={<ForgetPassword />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
       </Routes>
     </BrowserRouter>  
     </>
