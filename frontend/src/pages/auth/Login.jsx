@@ -35,14 +35,15 @@ const Login = () => {
       const data = await res.json();
       if(res.ok){
         console.log("res ok :)", data);
-        navigate('/');
-        localStorage.setItem(data.token, "token");
+        localStorage.setItem("token", data.token);
+        console.log(data.token);
       }else{
         console.error("there is a problem in response : ", res);
       }
     }catch(error) {
       console.error("error : ", error);
     }
+    navigate('/');
   };
 
   const handleOAuth = (provider) => {

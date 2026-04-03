@@ -58,6 +58,8 @@ class AuthController extends Controller
                 'business_location' => $request->businessLocation,
                 'business_description' => $request->businessDescription,
             ]);
+
+            $user->assignRole($request->role);
         }
 
         if ($request->role === 'user') {
@@ -65,7 +67,13 @@ class AuthController extends Controller
                 'user_id' => $user->id,
                 'interests' => json_encode($request->interests),
             ]);
+            
+            $user->assignRole($request->role);
         }
+
+        if ($request->role === 'admin') {
+            $user->assignRole($request->role);
+            }
 
         $token = Auth::login($user);
 

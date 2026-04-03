@@ -6,6 +6,7 @@ import OAuthSuccess from './pages/auth/OAuthSuccess'
 import Home from './pages/Home';
 import ForgetPassword from './pages/auth/ResetPassword/ForgetPassword';
 import ResetPassword from './pages/auth/ResetPassword/ResetPassword';
+import Dashboard from './pages/admin/Dashboard';
 
 
 function App() {
@@ -20,6 +21,7 @@ function App() {
         <Route path="/oauth-success" element={<OAuthSuccess />} />
         <Route path="/ForgetPassword" element={<ForgetPassword />} />
         <Route path="/reset-password" element={<ResetPassword />} />
+        <Route path="/hhh" element={<Dashboard />} />
       </Routes>
     </BrowserRouter>  
     </>

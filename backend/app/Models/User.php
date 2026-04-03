@@ -13,15 +13,16 @@ use Tymon\JWTAuth\Contracts\JWTSubject;
 // use App\Model\Organizer;
 use App\Model\Booking;
 use App\Model\UserProfile;
-// use App\Model\Organizer;
-
+use Spatie\Permission\Traits\HasRoles;
 
 #[Fillable(['name', 'email', 'role', 'age', 'city', 'image', 'password'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable implements JWTSubject
 {
     /** @use HasFactory<UserFactory> */
-    use HasFactory, Notifiable;
+    use HasFactory, Notifiable, HasRoles;
+    
+    protected $guard_name = 'api'; 
 
     public function getJWTIdentifier()
     {

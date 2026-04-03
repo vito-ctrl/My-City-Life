@@ -4,6 +4,8 @@ import Header from '../components/layout/Header';
 
 const Home = () => {
   const navigate = useNavigate();
+  const l = localStorage.getItem("token");
+  console.log(l);
 
   const activities = [
     {

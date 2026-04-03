@@ -13,3 +13,9 @@ Route::get('/auth/{provider}/callback', [SocialLoginController::class, 'callback
 
 Route::post('/forgot-password', [PasswordResetController::class, 'sendResetLink']);
 Route::post('/reset-password', [PasswordResetController::class, 'resetPassword']);
+
+Route::post('/admin/dashboard', function () {
+    return response()->json([
+        "message" => "user only"
+    ]);
+})->middleware(['auth:api', 'role:user']);
