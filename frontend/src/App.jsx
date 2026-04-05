@@ -7,6 +7,7 @@ import Home from './pages/Home';
 import ForgetPassword from './pages/auth/ResetPassword/ForgetPassword';
 import ResetPassword from './pages/auth/ResetPassword/ResetPassword';
 import Dashboard from './pages/admin/Dashboard';
+import ActivityForm from './pages/activities/ActivityForm';
 
 
 function App() {
@@ -22,6 +23,7 @@ function App() {
         <Route path="/ForgetPassword" element={<ForgetPassword />} />
         <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/hhh" element={<Dashboard />} />
+        <Route path="/activity/create" element={<ActivityForm />} />
       </Routes>
     </BrowserRouter>  
     </>

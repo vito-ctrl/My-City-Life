@@ -10,15 +10,22 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Tymon\JWTAuth\Contracts\JWTSubject;
-// use App\Model\Organizer;
-use App\Model\Booking;
-use App\Model\UserProfile;
+use App\Models\Organizer;
+use App\Models\Booking;
+use App\Models\UserProfile;
 use Spatie\Permission\Traits\HasRoles;
 
-#[Fillable(['name', 'email', 'role', 'age', 'city', 'image', 'password'])]
-#[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable implements JWTSubject
 {
+    protected $fillable = [
+        'name', 'email', 'role', 'age', 'city', 'image', 'password'
+    ];
+
+    protected $hidden = [
+        'password',
+        'remember_token'
+    ];
+
     /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable, HasRoles;
     
@@ -51,7 +58,6 @@ class User extends Authenticatable implements JWTSubject
     {
         return $this->hasOne(Organizer::class);
     }
-
 
     public function bookings() {
         return $this->hasMany(Booking::class);

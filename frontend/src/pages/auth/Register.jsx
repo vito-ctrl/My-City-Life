@@ -25,10 +25,10 @@ const Register = () => {
     image: null,
     interests: [],
     // Organizer fields
-    businessName: '',
-    businessType: '',
-    businessLocation: '',
-    businessDescription: '',
+    business_name: '',
+    business_type: '',
+    business_location: '',
+    business_description: '',
   });
 
   const navigate = useNavigate();
@@ -218,14 +218,14 @@ const Register = () => {
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <input
-                      type="text" name="businessName" placeholder="Business Name" required
+                      type="text" name="business_name" placeholder="Business Name" required
                       className={inputClass} onChange={handleChange}
                     />
-                    {errors.businessName && <p className={errorClass}>{errors.businessName[0]}</p>}
+                    {errors.business_name && <p className={errorClass}>{errors.business_name[0]}</p>}
                   </div>
                   <div>
                     <select
-                      name="businessType" required
+                      name="business_type" required
                       className={`${inputClass} text-white/70 appearance-none`}
                       onChange={handleChange}
                     >
@@ -235,24 +235,24 @@ const Register = () => {
                       <option value="Restaurant" className="bg-zinc-900">Restaurant</option>
                       <option value="Event" className="bg-zinc-900">Event</option>
                     </select>
-                    {errors.businessType && <p className={errorClass}>{errors.businessType[0]}</p>}
+                    {errors.business_type && <p className={errorClass}>{errors.business_type[0]}</p>}
                   </div>
                 </div>
 
                 <div>
                   <input
-                    type="text" name="businessLocation" placeholder="Business Location" required
+                    type="text" name="business_location" placeholder="Business Location" required
                     className={inputClass} onChange={handleChange}
                   />
-                  {errors.businessLocation && <p className={errorClass}>{errors.businessLocation[0]}</p>}
+                  {errors.business_location && <p className={errorClass}>{errors.businessLocation[0]}</p>}
                 </div>
 
                 <div>
                   <textarea
-                    name="businessDescription" placeholder="Business Description" required rows={3}
+                    name="business_description" placeholder="Business Description" required rows={3}
                     className={`${inputClass} resize-none`} onChange={handleChange}
                   />
-                  {errors.businessDescription && <p className={errorClass}>{errors.businessDescription[0]}</p>}
+                  {errors.business_description && <p className={errorClass}>{errors.business_description[0]}</p>}
                 </div>
               </div>
             )}

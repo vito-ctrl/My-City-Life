@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use App\Http\Controllers\Controller;
 use App\Models\UserProfile;
+use App\Models\Organizer;
 
 class AuthController extends Controller
 {
@@ -24,10 +25,10 @@ class AuthController extends Controller
             'image' => ['nullable', 'image', 'mimes:jpg,jpeg,png', 'max:2048'],
 
             // Organizer
-            'businessName' => ['required_if:role,organizer', 'string'],
-            'businessType' => ['required_if:role,organizer', 'in:Bar,Cafe,Restaurant,Event'],
-            'businessLocation' => ['required_if:role,organizer', 'string'],
-            'businessDescription' => ['required_if:role,organizer', 'string'],
+            'business_name' => ['required_if:role,organizer', 'string'],
+            'business_type' => ['required_if:role,organizer', 'in:Bar,Cafe,Restaurant,Event'],
+            'business_location' => ['required_if:role,organizer', 'string'],
+            'business_description' => ['required_if:role,organizer', 'string'],
 
             // User
             'interests' => ['required_if:role,user', 'array'],
@@ -49,17 +50,16 @@ class AuthController extends Controller
             'image' => $imagePath,
             'password' => Hash::make($request->password),
         ]);
-
+        
         if ($request->role === 'organizer') {
-            Organizer::create([
-                'user_id' => $user->id,
-                'business_name' => $request->businessName,
-                'business_type' => $request->businessType,
-                'business_location' => $request->businessLocation,
-                'business_description' => $request->businessDescription,
+            $user->organizer()->create([
+                'business_name' => $request->business_name,
+                'business_type' => $request->business_type,
+                'business_location' => $request->business_location,
+                'business_description' => $request->business_description,
             ]);
 
-            $user->assignRole($request->role);
+            $user->assignRole('business');
         }
 
         if ($request->role === 'user') {
@@ -73,7 +73,7 @@ class AuthController extends Controller
 
         if ($request->role === 'admin') {
             $user->assignRole($request->role);
-            }
+        }
 
         $token = Auth::login($user);
 

@@ -3,6 +3,7 @@ use App\Http\Controllers\Auth\AuthController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\SocialLoginController;
 use App\Http\Controllers\Auth\PasswordResetController;
+use App\Http\Controllers\Activity\ActivityController;
 
 
 Route::post('/register', [AuthController::class, 'register']);
@@ -19,3 +20,7 @@ Route::post('/admin/dashboard', function () {
         "message" => "user only"
     ]);
 })->middleware(['auth:api', 'role:user']);
+
+Route::middleware(['auth:api', 'role:business'])->group(function () {
+    Route::post('/activities/create', [ActivityController::class, 'create']);
+});
