@@ -66,4 +66,60 @@ class ActivityController extends Controller
 
         return response()->json(['data' => $activity]);
     }
+
+     public function update(Request $request, $id)
+    {
+        $validated = $request->validate([
+            'title'       => ['sometimes', 'string', 'max:255'],
+            'description' => ['sometimes', 'string'],
+            'category'    => ['sometimes', 'string'],
+            'location'    => ['nullable', 'string'],
+            'price'       => ['nullable', 'numeric', 'min:0'],
+            'is_free'     => ['sometimes', 'boolean'],
+            'image'       => ['nullable', 'string'],
+            'start_date'  => ['sometimes', 'date'],
+            'end_date'    => ['sometimes', 'date', 'after:start_date'],
+        ]);
+
+        $user = JWTAuth::parseToken()->authenticate();
+        $organizer = $user->organizer;
+
+        if (!$organizer) {
+            return response()->json(['error' => 'User is not an organizer'], 403);
+        }
+
+        $activity = $organizer->activities()->find($id);
+
+        if (!$activity) {
+            return response()->json(['error' => 'Activity not found or unauthorized'], 404);
+        }
+
+        $activity->update($validated);
+
+        return response()->json([
+            'message' => 'Activity updated successfully',
+            'data'    => $activity
+        ]);
+    }
+
+    public function destroy($id)
+    {
+        $user = JWTAuth::parseToken()->authenticate();
+        $organizer = $user->organizer;
+
+        if (!$organizer) {
+            return response()->json(['error' => 'User is not an organizer'], 403);
+        }
+
+        $activity = $organizer->activities()->find($id);
+
+        if (!$activity) {
+            return response()->json(['error' => 'Activity not found or unauthorized'], 404);
+        }
+
+        $activity->delete();
+
+        return response()->json(['message' => 'Activity deleted successfully']);
+    }
+
 }

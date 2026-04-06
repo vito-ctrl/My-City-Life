@@ -23,6 +23,8 @@ Route::post('/admin/dashboard', function () {
 
 Route::middleware(['auth:api', 'role:business'])->group(function () {
     Route::post('/activities/create', [ActivityController::class, 'create']);
+    Route::put('/activities/{id}',      [ActivityController::class, 'update']); 
+    Route::delete('/activities/{id}',   [ActivityController::class, 'destroy']);
 });
 
 Route::get('/activities',      [ActivityController::class, 'index']);
