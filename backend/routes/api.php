@@ -24,3 +24,6 @@ Route::post('/admin/dashboard', function () {
 Route::middleware(['auth:api', 'role:business'])->group(function () {
     Route::post('/activities/create', [ActivityController::class, 'create']);
 });
+
+Route::get('/activities',      [ActivityController::class, 'index']);
+// Route::get('/activities/{id}', [ActivityController::class, 'show']);

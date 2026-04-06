@@ -17,39 +17,43 @@ use Tymon\JWTAuth\Facades\JWTAuth;
 class ActivityController extends Controller
 {
     public function create(Request $request)
-{
-    // ✅ Validation (stronger)
-    $validated = $request->validate([
-        'title' => ['required', 'string', 'max:255'],
-        'description' => ['required', 'string'],
-        'category' => ['required', 'string'],
-        'location' => ['nullable', 'string'],
-        'price' => ['nullable', 'numeric', 'min:0'],
-        'is_free' => ['required', 'boolean'],
-        'image' => ['nullable', 'string'], // or image if upload
-        'start_date' => ['required', 'date'],
-        'end_date' => ['required', 'date', 'after:start_date'],
-    ]);
+    {
+        $validated = $request->validate([
+            'title'       => ['required', 'string', 'max:255'],
+            'description' => ['required', 'string'],
+            'category'    => ['required', 'string'],
+            'location'    => ['nullable', 'string'],
+            'price'       => ['nullable', 'numeric', 'min:0'],
+            'is_free'     => ['required', 'boolean'],
+            'image'       => ['nullable', 'string'],
+            'start_date'  => ['required', 'date'],
+            'end_date'    => ['required', 'date', 'after:start_date'],
+        ]);
 
-    // ✅ Auth user (JWT)
-    $user = JWTAuth::parseToken()->authenticate();
+        $user = JWTAuth::parseToken()->authenticate();
+        $organizer = $user->organizer;
 
-    // ✅ Get organizer safely
-    $organizer = $user->organizer; // no () → returns model directly
+        if (!$organizer) {
+            return response()->json(['error' => 'User is not an organizer'], 403);
+        }
 
-    if (!$organizer) {
+        $activity = $organizer->activities()->create($validated);
+
         return response()->json([
-            'error' => 'User is not an organizer'
-        ], 403);
+            'message' => 'Activity created successfully',
+            'data'    => $activity
+        ], 201);
     }
 
-    // ✅ Create activity using relationship (BEST PRACTICE)
-    $activity = $organizer->activities()->create($validated);
+    public function index(Request $request)
+    {
+        $activities = Activity::with('organizer')
+            ->when($request->category, fn($q, $v) => $q->where('category', $v))
+            ->when($request->search,   fn($q, $v) => $q->where('title', 'like', "%{$v}%"))
+            ->latest()
+            ->paginate(15);
 
-    return response()->json([
-        'message' => 'Activity created successfully',
-        'data' => $activity
-    ], 201);
-}
+        return response()->json($activities);
+    }
 
 }
