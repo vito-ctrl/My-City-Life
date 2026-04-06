@@ -56,4 +56,14 @@ class ActivityController extends Controller
         return response()->json($activities);
     }
 
+    public function show($id)
+    {
+        $activity = Activity::with('organizer')->find($id);
+
+        if (!$activity) {
+            return response()->json(['error' => 'Activity not found'], 404);
+        }
+
+        return response()->json(['data' => $activity]);
+    }
 }

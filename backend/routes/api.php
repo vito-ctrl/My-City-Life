@@ -26,4 +26,4 @@ Route::middleware(['auth:api', 'role:business'])->group(function () {
 });
 
 Route::get('/activities',      [ActivityController::class, 'index']);
-// Route::get('/activities/{id}', [ActivityController::class, 'show']);
+Route::get('/activities/{id}', [ActivityController::class, 'show']);
