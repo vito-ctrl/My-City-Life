@@ -9,7 +9,7 @@ use App\Models\Review;
 class Activity extends Model
 {
     protected $fillable = [
-        'organizer_id',
+        'user_id',
         'title',
         'description',
         'category',
@@ -18,10 +18,12 @@ class Activity extends Model
         'is_free',
         'image',
         'start_date',
-        'end_date'
+        'end_date',
+        'duration',
+        'requirements'
     ];
 
-    public function Organizer(){
+    public function user() {
         return $this->belongsTo(User::class);
     }
 

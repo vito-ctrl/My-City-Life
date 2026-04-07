@@ -11,12 +11,12 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('favorites', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('user_id')->constrained()->cascadeOnDelete();
-            $table->foreignId('activity_id')->constrained()->cascadeOnDelete();
-            $table->unique(['user_id', 'activity_id']);
-        });
+        // Schema::create('favorites', function (Blueprint $table) {
+        //     $table->id();
+        //     $table->foreignId('user_id')->constrained()->cascadeOnDelete();
+        //     $table->foreignId('activity_id')->constrained()->cascadeOnDelete();
+        //     $table->unique(['user_id', 'activity_id']);
+        // });
 
     }
 

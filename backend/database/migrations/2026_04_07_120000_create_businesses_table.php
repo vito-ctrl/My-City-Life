@@ -11,15 +11,17 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('reviews', function (Blueprint $table) {
+        Schema::create('businesses', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained()->cascadeOnDelete();
-            $table->foreignId('activity_id')->constrained()->cascadeOnDelete();
-            $table->integer('rating');
-            $table->text('comment')->nullable();
+            $table->string('name');
+            $table->enum('type', ['Bar', 'Cafe', 'Restaurant', 'Store', 'Event Space', 'Other'])->default('Other');
+            $table->string('location');
+            $table->text('description');
+            $table->string('image')->nullable();
+            $table->string('opening_hours')->nullable();
             $table->timestamps();
         });
-
     }
 
     /**
@@ -27,6 +29,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        //
+        Schema::dropIfExists('businesses');
     }
 };

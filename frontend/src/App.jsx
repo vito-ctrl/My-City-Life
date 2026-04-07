@@ -6,9 +6,11 @@ import OAuthSuccess from './pages/auth/OAuthSuccess'
 import Home from './pages/Home';
 import ForgetPassword from './pages/auth/ResetPassword/ForgetPassword';
 import ResetPassword from './pages/auth/ResetPassword/ResetPassword';
-import Dashboard from './pages/admin/Dashboard';
 import ActivityForm from './pages/activities/ActivityForm';
-import OrganizerDashboard from './pages/organizer/OrganizerDashboard';
+import ActivitiesPage from './pages/activities/ActivitiesPage';
+
+
+import TestBooking from './pages/TestBooking/TestBooking';
 
 
 function App() {
@@ -23,9 +25,11 @@ function App() {
         <Route path="/oauth-success" element={<OAuthSuccess />} />
         <Route path="/ForgetPassword" element={<ForgetPassword />} />
         <Route path="/reset-password" element={<ResetPassword />} />
-        <Route path="/hhh" element={<Dashboard />} />
         <Route path="/activity/create" element={<ActivityForm />} />
-        <Route path="/organizer/dashboard" element={<OrganizerDashboard />} />
+        <Route path="/activitie/pay" element={<ActivitiesPage />} />
+        
+        {/* Test Route */}
+        <Route path="/test-booking" element={<TestBooking />} />
       </Routes>
     </BrowserRouter>  
     </>

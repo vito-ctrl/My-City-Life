@@ -18,6 +18,9 @@ return Application::configure(basePath: dirname(__DIR__))
             'role' => RoleMiddleware::class,
             'permission' => PermissionMiddleware::class,
         ]);
+        $middleware->validateCsrfTokens(except: [
+            'api/stripe/webhook', 
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //

@@ -7,9 +7,7 @@ use Illuminate\Http\Request;
 
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Hash;
 use App\Models\UserProfile;
-use App\Models\Organizer;
 use App\Models\Activity;
 use Tymon\JWTAuth\Facades\JWTAuth;
 
@@ -26,18 +24,19 @@ class ActivityController extends Controller
             'price'       => ['nullable', 'numeric', 'min:0'],
             'is_free'     => ['required', 'boolean'],
             'image'       => ['nullable', 'string'],
-            'start_date'  => ['required', 'date'],
-            'end_date'    => ['required', 'date', 'after:start_date'],
+            'start_date'  => ['nullable', 'date'],
+            'end_date'    => ['nullable', 'date', 'after:start_date'],
+            'duration'    => ['nullable', 'string', 'max:255'],
+            'requirements'=> ['nullable', 'string'],
         ]);
 
         $user = JWTAuth::parseToken()->authenticate();
-        $organizer = $user->organizer;
 
-        if (!$organizer) {
-            return response()->json(['error' => 'User is not an organizer'], 403);
+        if ($user->isOrganizer()) {
+            return response()->json(['error' => 'Organizers are restricted from creating activities.'], 403);
         }
 
-        $activity = $organizer->activities()->create($validated);
+        $activity = $user->activities()->create($validated);
 
         return response()->json([
             'message' => 'Activity created successfully',
@@ -47,7 +46,7 @@ class ActivityController extends Controller
 
     public function index(Request $request)
     {
-        $activities = Activity::with('organizer')
+        $activities = Activity::with('user')
             ->when($request->category, fn($q, $v) => $q->where('category', $v))
             ->when($request->search,   fn($q, $v) => $q->where('title', 'like', "%{$v}%"))
             ->latest()
@@ -58,7 +57,7 @@ class ActivityController extends Controller
 
     public function show($id)
     {
-        $activity = Activity::with('organizer')->find($id);
+        $activity = Activity::with('user')->find($id);
 
         if (!$activity) {
             return response()->json(['error' => 'Activity not found'], 404);
@@ -77,18 +76,15 @@ class ActivityController extends Controller
             'price'       => ['nullable', 'numeric', 'min:0'],
             'is_free'     => ['sometimes', 'boolean'],
             'image'       => ['nullable', 'string'],
-            'start_date'  => ['sometimes', 'date'],
-            'end_date'    => ['sometimes', 'date', 'after:start_date'],
+            'start_date'  => ['nullable', 'date'],
+            'end_date'    => ['nullable', 'date', 'after:start_date'],
+            'duration'    => ['nullable', 'string', 'max:255'],
+            'requirements'=> ['nullable', 'string'],
         ]);
 
         $user = JWTAuth::parseToken()->authenticate();
-        $organizer = $user->organizer;
 
-        if (!$organizer) {
-            return response()->json(['error' => 'User is not an organizer'], 403);
-        }
-
-        $activity = $organizer->activities()->find($id);
+        $activity = $user->activities()->find($id);
 
         if (!$activity) {
             return response()->json(['error' => 'Activity not found or unauthorized'], 404);
@@ -105,13 +101,8 @@ class ActivityController extends Controller
     public function destroy($id)
     {
         $user = JWTAuth::parseToken()->authenticate();
-        $organizer = $user->organizer;
 
-        if (!$organizer) {
-            return response()->json(['error' => 'User is not an organizer'], 403);
-        }
-
-        $activity = $organizer->activities()->find($id);
+        $activity = $user->activities()->find($id);
 
         if (!$activity) {
             return response()->json(['error' => 'Activity not found or unauthorized'], 404);

@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use App\Http\Controllers\Controller;
 use App\Models\UserProfile;
-use App\Models\Organizer;
+use App\Models\Business;
 
 class AuthController extends Controller
 {
@@ -19,18 +19,18 @@ class AuthController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'email', 'max:255', 'unique:users,email'],
             'password' => ['required', 'string', 'min:6', 'confirmed'],
-            'role' => ['required', 'in:user,admin,organizer'],
+            'role' => ['required', 'in:user,admin,Organizer,Guide Local'],
             'age' => ['required', 'integer', 'min:13', 'max:70'],
             'city' => ['required', 'string', 'max:100'],
             'image' => ['nullable', 'image', 'mimes:jpg,jpeg,png', 'max:2048'],
 
-            // Organizer
-            'business_name' => ['required_if:role,organizer', 'string'],
-            'business_type' => ['required_if:role,organizer', 'in:Bar,Cafe,Restaurant,Event'],
-            'business_location' => ['required_if:role,organizer', 'string'],
-            'business_description' => ['required_if:role,organizer', 'string'],
+            // Business/Organizer
+            'business_name' => ['required_if:role,Organizer', 'string'],
+            'business_type' => ['required_if:role,Organizer', 'in:Bar,Cafe,Restaurant,Event Space,Store,Other'],
+            'business_location' => ['required_if:role,Organizer', 'string'],
+            'business_description' => ['required_if:role,Organizer', 'string'],
 
-            // User
+            // User & Guide Local
             'interests' => ['required_if:role,user', 'array'],
         ]);
 
@@ -51,21 +51,21 @@ class AuthController extends Controller
             'password' => Hash::make($request->password),
         ]);
         
-        if ($request->role === 'organizer') {
-            $user->organizer()->create([
-                'business_name' => $request->business_name,
-                'business_type' => $request->business_type,
-                'business_location' => $request->business_location,
-                'business_description' => $request->business_description,
+        if ($request->role === 'Organizer') {
+            $user->businesses()->create([
+                'name' => $request->business_name,
+                'type' => $request->business_type,
+                'location' => $request->business_location,
+                'description' => $request->business_description,
             ]);
 
-            $user->assignRole('business');
+            $user->assignRole('Organizer');
         }
 
-        if ($request->role === 'user') {
+        if ($request->role === 'user' || $request->role === 'Guide') {
             UserProfile::create([
                 'user_id' => $user->id,
-                'interests' => json_encode($request->interests),
+                'interests' => $request->interests ? json_encode($request->interests) : null,
             ]);
             
             $user->assignRole($request->role);

@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('activities', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('organizer_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('user_id')->constrained()->cascadeOnDelete();
             $table->string('title');
             $table->text('description');
             $table->string('category');
@@ -21,8 +21,10 @@ return new class extends Migration
             $table->float('price')->default(0);
             $table->boolean('is_free')->default(false); 
             $table->string('image')->nullable();
-            $table->dateTime('start_date');
-            $table->dateTime('end_date');
+            $table->dateTime('start_date')->nullable();
+            $table->dateTime('end_date')->nullable();
+            $table->string('duration')->nullable();
+            $table->text('requirements')->nullable();
             $table->timestamps();
         });
     }

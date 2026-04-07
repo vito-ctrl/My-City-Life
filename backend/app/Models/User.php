@@ -10,7 +10,8 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Tymon\JWTAuth\Contracts\JWTSubject;
-use App\Models\Organizer;
+use App\Models\Activity;
+use App\Models\Business;
 use App\Models\Booking;
 use App\Models\UserProfile;
 use Spatie\Permission\Traits\HasRoles;
@@ -54,9 +55,14 @@ class User extends Authenticatable implements JWTSubject
         ];
     }
 
-    public function organizer()
+    public function activities()
     {
-        return $this->hasOne(Organizer::class);
+        return $this->hasMany(Activity::class);
+    }
+
+    public function businesses()
+    {
+        return $this->hasMany(Business::class);
     }
 
     public function bookings() {
@@ -71,7 +77,12 @@ class User extends Authenticatable implements JWTSubject
     // role shecking
     public function isOrganizer()
     {
-        return $this->role === 'organizer';
+        return $this->role === 'Organizer';
+    }
+
+    public function isGuideLocal()
+    {
+        return $this->role === 'Guide Local';
     }
 
     public function isUser()

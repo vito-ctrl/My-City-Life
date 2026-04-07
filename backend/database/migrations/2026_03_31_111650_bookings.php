@@ -15,9 +15,20 @@ return new class extends Migration
             $table->id();
             $table->foreignId('user_id')->constrained()->cascadeOnDelete();
             $table->foreignId('activity_id')->constrained()->cascadeOnDelete();
-            $table->float('amount');
-            $table->enum('status', ['pending', 'completed', 'failed']);
+            
+            $table->dateTime('booking_date');
+            $table->integer('number_of_guests')->default(1);
+
+            $table->enum('status', ['pending', 'confirmed', 'cancelled'])->default('pending');
+            $table->timestamp('booked_at')->useCurrent();
+            $table->timestamp('cancelled_at')->nullable();
+
+            $table->decimal('amount', 10, 2);
+            $table->enum('payment_status', ['unpaid', 'paid', 'refunded'])->default('unpaid');
             $table->string('payment_method')->nullable();
+            $table->string('stripe_payment_intent_id')->nullable()->unique();
+            $table->string('stripe_charge_id')->nullable();
+
             $table->timestamps();
         });
 
@@ -28,6 +39,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        //
+        Schema::dropIfExists('bookings');
     }
 };
