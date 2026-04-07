@@ -27,14 +27,14 @@ class LikeController extends Controller
             $like = $model->likes()->where('user_id', $user->id)->first();
 
             if ($like) {
-                // If it already exists, unlike it
+
                 $like->delete();
                 return response()->json([
                     'message' => 'Unliked successfully',
                     'liked' => false
                 ]);
             } else {
-                // If it doesn't exist, like it
+
                 $model->likes()->create([
                     'user_id' => $user->id,
                     $fkColumn => $model->id
@@ -62,21 +62,6 @@ class LikeController extends Controller
                 return Activity::findOrFail($id);
             case 'businesses':
                 return Business::findOrFail($id);
-            default:
-                throw new \Exception("Unsupported likable type.");
-        }
-    }
-
-    /**
-     * Helper to resolve the foreign key column name based on URL type.
-     */
-    private function getForeignKeyColumn($type)
-    {
-        switch (strtolower($type)) {
-            case 'activities':
-                return 'activity_id';
-            case 'businesses':
-                return 'business_id';
             default:
                 throw new \Exception("Unsupported likable type.");
         }

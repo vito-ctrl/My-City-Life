@@ -104,19 +104,4 @@ class CommentController extends Controller
                 throw new \Exception("Unsupported commentable type: {$type}");
         }
     }
-
-    /**
-     * Helper to resolve the foreign key column name based on URL type.
-     */
-    private function getForeignKeyColumn($type)
-    {
-        switch (strtolower($type)) {
-            case 'activities':
-                return 'activity_id';
-            case 'businesses':
-                return 'business_id';
-            default:
-                throw new \Exception("Unsupported commentable type: {$type}");
-        }
-    }
 }
