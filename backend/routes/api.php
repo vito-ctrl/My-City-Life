@@ -6,7 +6,8 @@ use App\Http\Controllers\Auth\PasswordResetController;
 use App\Http\Controllers\Activity\ActivityController;
 use App\Http\Controllers\Business\BusinessController;
 use App\Http\Controllers\Booking\BookingController;
-
+use App\Http\Controllers\LikeController;
+use App\Http\Controllers\CommentController;
 
 
 Route::post('/register', [AuthController::class, 'register']);
@@ -39,6 +40,14 @@ Route::get('/activities/{id}', [ActivityController::class, 'show']);
 
 Route::get('/businesses',      [BusinessController::class, 'index']);
 Route::get('/businesses/{id}', [BusinessController::class, 'show']);
+
+// likes routes
+Route::post('/like/{type}/{id}', [LikeController::class, 'toggle']);
+Route::get('/like/{type}/{id}', [LikeController::class, 'getModelInstance']);
+
+// comments routes
+Route::get('/comments/{type}/{id}', [CommentController::class, 'index']);
+Route::post('/comments/{type}/{id}', [CommentController::class, 'store']);
 
 Route::middleware('auth:api')->group(function () {
     Route::get   ('bookings',                      [BookingController::class, 'index']);
