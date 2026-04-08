@@ -104,4 +104,16 @@ class CommentController extends Controller
                 throw new \Exception("Unsupported commentable type: {$type}");
         }
     }
+
+    private function getForeignKeyColumn($type)
+    {
+        switch (strtolower($type)) {
+            case 'activities':
+                return 'activity_id';
+            case 'businesses':
+                return 'business_id';
+            default:
+                throw new \Exception("Unsupported commentable type: {$type}");
+        }
+    }
 }
