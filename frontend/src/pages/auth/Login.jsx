@@ -54,7 +54,6 @@ const Login = () => {
 
   return (
     <div className="flex h-screen w-screen bg-black text-white font-inter overflow-hidden">
-      
       {/* Left side - Decorative Image Side (Moroccan Riad Theme) */}
       <div className="hidden lg:flex flex-[0_0_45%] relative overflow-hidden items-center justify-center p-12 
         bg-[linear-gradient(135deg,rgba(21,50,55,0.95)_0%,rgba(35,107,115,0.85)_25%,rgba(45,140,145,0.75)_50%,rgba(90,120,100,0.65)_75%,rgba(0,0,0,0.9)_100%)]">
