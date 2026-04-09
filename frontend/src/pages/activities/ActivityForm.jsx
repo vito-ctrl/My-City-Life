@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
-import { FiPlus, FiMapPin, FiTag, FiDollarSign, FiCalendar, FiImage, FiType, FiAlignLeft } from 'react-icons/fi';
+import { FiPlus, FiMapPin, FiTag, FiDollarSign, FiCalendar, FiImage, FiType, FiAlignLeft, FiArrowLeft } from 'react-icons/fi';
+import { useNavigate } from 'react-router-dom';
 
 const ActivityForm = () => {
+    const navigate = useNavigate()
     const [form, setForm] = useState({
         title: "",
         description: "",
@@ -57,6 +59,15 @@ const ActivityForm = () => {
     return (
         <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center p-6">
             <div className="w-full max-w-2xl bg-[#1a1518]/50 border border-white/10 rounded-[32px] p-8 md:p-12 shadow-2xl backdrop-blur-xl">
+                <div className="absolute top-8 left-8 z-20">
+                    <button 
+                    onClick={() => navigate(-1)}
+                    className="flex items-center gap-3 bg-white/20 backdrop-blur-md border border-white/10 px-6 py-3 rounded-2xl hover:bg-orange-500 transition-all group"
+                    >
+                    <FiArrowLeft className="group-hover:-translate-x-1 transition-transform"/> 
+                    <span className="text-[10px] font-black uppercase tracking-[2px]">Back</span>
+                    </button>
+                </div>
                 
                 {/* Header */}
                 <div className="mb-10 text-center">
