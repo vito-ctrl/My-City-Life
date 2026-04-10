@@ -60,8 +60,8 @@ const Header = () => {
     // Default for 'user' role
     return (
       <>
-        <Link to="/home" className={`flex items-center gap-2 text-[11px] font-black uppercase tracking-widest ${isActive('/home') ? 'text-orange-500' : 'text-white/60'}`}>
-          <FiCompass /> Discover
+        <Link to="/activity/manage" className={`flex items-center gap-2 text-[11px] font-black uppercase tracking-widest ${isActive('/activity-manage') ? 'text-orange-500' : 'text-white/60'}`}>
+          <FiCompass /> manage activity
         </Link>
         <Link to="/activity/create" className={`flex items-center gap-2 text-[11px] font-black uppercase tracking-widest ${isActive('/creaet Activity') ? 'text-orange-500' : 'text-white/60'}`}>
           <FiCompass /> Create Activity
