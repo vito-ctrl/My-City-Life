@@ -16,6 +16,7 @@ import ActivityForm from './pages/activities/ActivityForm';
 // import ActivitiesPage from './pages/activities/ActivitiesPage';
 import ActivitiesDeatels from './pages/activities/ActivitiesDeatels';
 import ManageActivities from './pages/activities/ManageActivities';
+import Profile from './pages/Profile';
 
 
 function App() {
@@ -35,7 +36,7 @@ function App() {
         <Route path="/Dashboard" element={<Dashboard />} />
         <Route path="/:type/:id" element={<ActivitiesDeatels />} />
         <Route path="/activity/manage" element={<ManageActivities />} />
-
+        <Route path="/profile/:id" element={<Profile />} />
         
         {/* Test Route */}
         <Route path="/test-booking" element={<TestBooking />} />

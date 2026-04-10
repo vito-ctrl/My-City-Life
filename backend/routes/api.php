@@ -36,6 +36,8 @@ Route::get('/comments/{type}/{id}', [CommentController::class, 'index']);
 // ── Protected Routes (Auth required) ─────────────────────────────────────────
 Route::middleware('auth:api')->group(function () {
 
+    Route::get ('/profile/{id}', [AuthController::class, 'getUser']);
+
     // Activities CRUD
     Route::post  ('/activities/create', [ActivityController::class, 'create']);
     Route::put   ('/activities/{id}',   [ActivityController::class, 'update']);

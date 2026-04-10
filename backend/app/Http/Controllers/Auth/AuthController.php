@@ -97,4 +97,26 @@ class AuthController extends Controller
             'user' => auth('api')->user()
         ]);
     }
+
+    public function getUser($id){
+        $user = User::find($id);
+
+        if (!$user) {
+            return response()->json([
+                'message' => 'User not found'
+            ], 404);
+        }
+
+        if ($user->role === 'Organizer') {
+            $data = $user->businesses;
+        } else {
+            $data = $user->profile;
+        }
+
+
+        return response()->json([
+            'user' => $user,
+            'data' => $data,
+        ]);
+    }
 }

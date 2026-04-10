@@ -33,8 +33,6 @@ const ManageActivities = () => {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       const data = await res.json();
-      // Adjust this based on if you have a specific 'my-activities' endpoint 
-      // or if your 'index' filtered by auth.
       setActivities(data.data || []); 
     } catch (err) {
       console.error("Fetch failed", err);
