@@ -9,7 +9,6 @@ const Home = () => {
   const [activities, setActivities] = useState([]);
   const [businesses, setBusinesses] = useState([]);
   const [loading, setLoading] = useState(true);
-
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -23,7 +22,7 @@ const Home = () => {
         
         // Laravel paginate returns data inside 'data' array
         setActivities(acts.data || []);
-        setBusinesses(buss.data || []);
+        setBusinesses(buss.data || []);4
       } catch (error) {
         console.error("Discovery error:", error);
       } finally {
@@ -31,15 +30,51 @@ const Home = () => {
       }
     };
     fetchData();
+
+    const getLocation = () => {
+      return new Promise((resolve, reject) => {
+        navigator.geolocation.getCurrentPosition(resolve, reject);
+      });
+    };
+
+    const getCityCountry = async () => {
+      try {
+        const position = await getLocation();
+        const { latitude, longitude } = position.coords;
+        const API_KEY = "b46deea88e6a47d2bfcba9d6c6bda72d";
+
+        const res = await fetch(
+          `https://api.opencagedata.com/geocode/v1/json?q=${latitude}+${longitude}&key=${API_KEY}`
+        );
+
+        const data = await res.json();
+        console.log(data);
+
+        const components = data.results[0].components;
+
+        const city =
+          components.city ||
+          components.town ||
+          components.village ||
+          components.state;
+
+        const country = components.country;
+
+        console.log(city, country );
+      } catch (err) {
+        console.error("Location denied or unavailable : ", err);
+      }
+    };
+    // getCityCountry()
   }, []);
 
   return (
-    <div className="min-h-screen bg-[#0a0a0a] p-4 md:p-12">
-      <div className="max-w-[1600px] mx-auto bg-gradient-to-br from-[#1a1518] via-[#0f0f0f] to-[#0a0a0a] border border-white/10 rounded-[32px] overflow-hidden shadow-2xl">
+    <div className="bg-[#0a0a0a]">
+      <div className="max-w-[1600px] mx-auto bg-gradient-to-br from-[#1a1518] via-[#0f0f0f] to-[#0a0a0a] overflow-hidden shadow-2xl">
         <Header/>
 
         {/* Hero Section */}
-        <section className="px-8 md:px-16 py-24 grid grid-cols-1 lg:grid-cols-2 gap-16 items-center border-b border-white/5">
+        <section className="px-8 md:px-16 py-20 grid grid-cols-1 lg:grid-cols-2 gap-16 items-center border-b border-white/5">
           <div className="space-y-8">
             <h1 className="text-7xl md:text-8xl font-black leading-[0.9] tracking-tighter text-white italic">
               LIVE THE<br /><span className="text-orange-500">MOMENT</span>
@@ -63,7 +98,7 @@ const Home = () => {
           </div>
 
           <div className="relative h-[500px] hidden lg:flex items-center justify-center">
-            <div className="absolute w-[450px] h-[450px] bg-orange-500/10 blur-[80px] rounded-full" />
+            <div className="absolute w-[400px] h-[400px] bg-orange-500/10 blur-[80px] rounded-full" />
             <img 
               src="https://images.unsplash.com/photo-1539037116277-4db20889f2d4?auto=format&fit=crop&q=80&w=800" 
               className="relative z-10 w-[380px] h-[520px] object-cover rounded-[40px] border border-white/10 rotate-3 hover:rotate-0 transition-transform duration-500" 
@@ -73,7 +108,7 @@ const Home = () => {
         </section>
 
         {/* Dynamic Activities Section */}
-        <section className="px-8 md:px-16 py-24">
+        <section className="px-8 md:px-16 py-14">
           <div className="flex flex-col md:flex-row md:items-end justify-between mb-16 gap-6">
             <div>
               <span className="text-orange-500 text-[11px] font-black tracking-[3px] uppercase">Explore</span>

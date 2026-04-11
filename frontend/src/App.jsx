@@ -17,6 +17,7 @@ import ActivityForm from './pages/activities/ActivityForm';
 import ActivitiesDeatels from './pages/activities/ActivitiesDeatels';
 import ManageActivities from './pages/activities/ManageActivities';
 import Profile from './pages/Profile';
+import LandingPage from './pages/LandingPage';
 
 
 function App() {
@@ -37,6 +38,7 @@ function App() {
         <Route path="/:type/:id" element={<ActivitiesDeatels />} />
         <Route path="/activity/manage" element={<ManageActivities />} />
         <Route path="/profile/:id" element={<Profile />} />
+        <Route path="/landing" element={<LandingPage />} />
         
         {/* Test Route */}
         <Route path="/test-booking" element={<TestBooking />} />

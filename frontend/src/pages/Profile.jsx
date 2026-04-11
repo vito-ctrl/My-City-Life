@@ -76,7 +76,6 @@ const Profile = () => {
               <span className={`px-3 py-1 rounded-md text-[9px] font-black tracking-widest uppercase italic ${isOrganizer ? 'bg-blue-600' : 'bg-orange-500'}`}>
                 {userData.role}
               </span>
-              <span className="text-white/20 text-[9px] font-bold uppercase tracking-widest">ID: #{userData.id}</span>
             </div>
             <h1 className="text-5xl md:text-7xl font-black italic tracking-tighter uppercase leading-none mb-4">
               {userData.name}
@@ -144,7 +143,6 @@ const Profile = () => {
                           <span className="text-[9px] font-black text-blue-500 uppercase tracking-widest bg-blue-500/10 px-2 py-0.5 rounded">
                             {biz.type}
                           </span>
-                          <span className="text-white/20 text-[9px] font-bold uppercase">#{biz.id}</span>
                         </div>
                         <h4 className="text-xl font-black italic uppercase tracking-tighter">{biz.name}</h4>
                         <p className="text-white/40 text-xs font-medium flex items-center gap-1 mt-1">

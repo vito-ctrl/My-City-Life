@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Auth;
 use Illuminate\Http\Request;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
+use Tymon\JWTAuth\Facades\JWTAuth;
 use Illuminate\Support\Facades\Hash;
 use App\Http\Controllers\Controller;
 use App\Models\UserProfile;
@@ -98,9 +99,8 @@ class AuthController extends Controller
         ]);
     }
 
-    public function getUser($id){
-        $user = User::find($id);
-
+    public function getUser(){
+        $user = JWTAuth::parseToken()->authenticate();
         if (!$user) {
             return response()->json([
                 'message' => 'User not found'

@@ -4,13 +4,18 @@ import Riad from '../../assets/images/Morocca_Riad_with_Mosaic.jpg'
 import { useNavigate } from 'react-router-dom';
 
 const Login = () => {
+  const navigate = useNavigate();
+  
+  const tok = localStorage.getItem('token');
+  // if(tok){
+  //   navigate('/')
+  // }
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
     email: '',
     password: ''
   });
 
-  const navigate = useNavigate();
 
   const handleChange = (e) => {
     const { name, value } = e.target;
