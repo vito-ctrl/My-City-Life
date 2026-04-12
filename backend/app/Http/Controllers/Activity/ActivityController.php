@@ -113,4 +113,13 @@ class ActivityController extends Controller
         return response()->json(['message' => 'Activity deleted successfully']);
     }
 
+    public function getUserActivities () {
+        $user = JWTAuth::parseToken()->authenticate();
+        // return "hi";
+
+        $activities = Activity::where('user_id', $user->id)->get();
+
+        return response()->json($activities);
+    }
+
 }
