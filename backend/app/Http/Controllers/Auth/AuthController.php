@@ -106,7 +106,7 @@ class AuthController extends Controller
                 'message' => 'User not found'
             ], 404);
         }
-
+        $user->image = asset('storage/' . $user->image);
         if ($user->role === 'Organizer') {
             $data = $user->businesses;
         } else {

@@ -104,8 +104,11 @@ const Header = () => {
                   <p className="text-[9px] font-bold text-orange-500/60 uppercase tracking-widest">{user.role}</p>
                 </div>
                 <div className="w-10 h-10 bg-white/5 border border-white/10 rounded-xl flex items-center justify-center group-hover:border-orange-500/50 group-hover:bg-orange-500/5 transition-all">
-                  {/* <FiUser className="text-white" size={18} /> */}
-                  <img src={user.image} alt="" size={18}/>
+                  {user.image === 'http://127.0.0.1:8000/storage' ? (
+                    <FiUser className="text-white" size={18} />
+                  ): (
+                    <img src={user.image} alt="user image" className="rounded h-10 w-10" size={10}/>
+                  )}
                 </div>
               </button>
             ) : (
@@ -143,15 +146,21 @@ const Header = () => {
           </div>
 
           {/* Identity Card */}
-          <div className="relative overflow-hidden bg-gradient-to-br from-white/[0.07] to-transparent rounded-3xl p-6 mb-8 border border-white/10">
+          <div 
+            className="relative overflow-hidden rounded-3xl p-6 mb-8 border border-white/10 bg-gradient-to-br from-white/[0.07] to-transparent bg-cover bg-center"
+            style={{ backgroundImage: user?.image === 'http://127.0.0.1:8000/storage' ? <FiUser className="absolute -right-4 -bottom-4 text-white/5" size={100} /> : `url(${user?.image})`}}
+          >
+            {/* Dark Overlay - only visible if there is an image to ensure text readability */}
+            {user?.image && <div className="absolute inset-0 bg-black/40 z-0" />}
+
             <div className="relative z-10">
-              <p className="text-white font-black text-xl uppercase italic tracking-tighter leading-none">{user?.name}</p>
-              <p className="text-orange-500 font-bold text-[10px] uppercase tracking-[0.2em] mt-2 inline-block px-2 py-1 bg-orange-500/10 rounded-md">
+              <p className="text-white font-black text-xl uppercase italic tracking-tighter leading-none">
+                {user?.name}
+              </p>
+              <p className="text-orange-500 font-bold text-[10px] uppercase tracking-[0.2em] mt-2 inline-block px-2 py-1 bg-orange-500/10 backdrop-blur-md rounded-md">
                 {user?.role}
               </p>
             </div>
-            {/* Aesthetic background icon */}
-            <FiUser className="absolute -right-4 -bottom-4 text-white/5" size={100} />
           </div>
 
           {/* Action Links */}
