@@ -10,7 +10,7 @@ use App\Http\Controllers\Booking\BookingController;
 use App\Http\Controllers\LikeController;
 use App\Http\Controllers\CommentController;
 use App\Http\Controllers\Statistic\StatisticController;
-
+use App\Http\Controllers\FavoritesController;
 
 // ── Auth (Public) ─────────────────────────────────────────────────────────────
 Route::post('/register', [AuthController::class, 'register']);
@@ -25,7 +25,8 @@ Route::post('/reset-password',  [PasswordResetController::class, 'resetPassword'
 
 // ── Public Reads ──────────────────────────────────────────────────────────────
 Route::get('/activities',      [ActivityController::class, 'index']);
-// Route::get('/activities/{id}', [ActivityController::class, 'show']);
+Route::get('/activities/user/all',   [ActivityController::class, 'getUserActivities']);
+Route::get('/activities/{id}', [ActivityController::class, 'show']);
 
 Route::get('/businesses',      [BusinessController::class, 'index']);
 Route::get('/businesses/{id}', [BusinessController::class, 'show']);
@@ -39,7 +40,6 @@ Route::middleware('auth:api')->group(function () {
     Route::get ('/profile', [AuthController::class, 'getUser']);
 
     // Activities CRUD
-    Route::get   ('/activities/user/all',   [ActivityController::class, 'getUserActivities']);
     Route::post  ('/activities/create', [ActivityController::class, 'create']);
     Route::put   ('/activities/{id}',   [ActivityController::class, 'update']);
     Route::delete('/activities/{id}',   [ActivityController::class, 'destroy']);
@@ -51,6 +51,7 @@ Route::middleware('auth:api')->group(function () {
 
     // Likes (Toggle Like/Unlike)
     Route::post('/like/{type}/{id}', [LikeController::class, 'toggle']);
+    Route::post('/favorite/{type}/{id}', [FavoritesController::class, 'toggle']);
 
     // Comments
     Route::post  ('/comments/{type}/{id}',              [CommentController::class, 'store']);

@@ -21,15 +21,14 @@ const Home = () => {
         
         const acts = await actRes.json();
         const buss = await busRes.json();
+        console.log(acts);
         
-        // Laravel paginate returns data inside 'data' array
         setActivities(acts.data || []);
         setBusinesses(buss.data || []);4
       } catch (error) {
         console.error("Discovery error:", error);
       } finally {
         setLoading(false);
-        // setTimeout(() => setLoading(false), 300);
       }
     };
     fetchData();
@@ -68,10 +67,8 @@ const Home = () => {
         console.error("Location denied or unavailable : ", err);
       }
     };
-    getCityCountry()
+    // getCityCountry()
   }, []);
-
-  console.log("location : ", location);
 
   return (
     <div className="bg-[#0a0a0a]">

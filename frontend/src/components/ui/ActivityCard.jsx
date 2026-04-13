@@ -1,8 +1,12 @@
-import React from 'react';
-import { FiMapPin, FiArrowRight } from 'react-icons/fi';
+import React, { useState } from 'react';
+import { FiMapPin, FiArrowRight, FiHeart } from 'react-icons/fi';
+import { IoHeartOutline, IoHeartSharp } from "react-icons/io5"; 
+import { AiOutlineLike } from "react-icons/ai";
 
 const ActivityCard = ({ item, type = 'activity', onClick }) => {
-  // Determine display properties based on the data structure from Laravel
+  const [isFavorite, setIsFavorite] = useState(false);
+  const [ isLike, setIsLike ] = useState(false);
+
   const title = item.title || item.name;
   const description = item.description || item.type;
   const image = item.image || "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&q=80&w=800";
@@ -10,6 +14,34 @@ const ActivityCard = ({ item, type = 'activity', onClick }) => {
   const isFree = item.is_free === 1 || item.is_free === true;
   const badgeText = type === 'activity' ? (isFree ? 'FREE' : `${item.price} MAD`) : 'BUSINESS';
   const badgeColor = isFree ? 'bg-green-500/90' : 'bg-orange-500/90';
+
+  const token = localStorage.getItem('token');
+
+  // Function to handle favorite click
+  const handleFavorite = (e) => {
+    e.stopPropagation(); // CRITICAL: Prevents the card's onClick (navigate) from firing
+    setIsFavorite(!isFavorite);
+    console.log("yesssssss");
+  };
+
+  const handleLike = async(e) => {
+    e.stopPropagation();
+    console.log("hi", item);
+    try{
+      const res = await fetch(`http://127.0.0.1:8000/api/like/activities/${item.id}`, {
+        method: 'POST',
+        headers: {
+          'Authorization' : `Bearer ${token}`,
+        }
+      });
+      setIsLike(!isLike);
+      console.log(res.json());
+    }catch(err){
+      console.log("like error : ", err);
+    }
+
+    console.log('like');
+  } 
 
   return (
     <div 
@@ -40,8 +72,34 @@ const ActivityCard = ({ item, type = 'activity', onClick }) => {
 
         <div className="pt-4 flex items-center justify-between border-t border-white/5">
           <span className="text-[11px] font-bold text-white/20 uppercase tracking-widest">View Details</span>
-          <div className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center group-hover:bg-orange-500 transition-all">
-            <FiArrowRight className="text-white group-hover:scale-110" />
+          <div className='flex gap-3'>
+            {/* Favorite Button */}
+            <button 
+              onClick={handleFavorite}
+              className={`w-10 h-10 rounded-full flex items-center justify-center transition-all ${
+                isFavorite 
+                ? 'bg-orange-500 text-white' 
+                : 'bg-white/5 text-orange-500 hover:bg-white/10'
+              }`}
+            >
+              {isFavorite ? <IoHeartSharp size={20} /> : <IoHeartOutline size={20} />}
+            </button>
+
+            <button 
+              onClick={handleLike}
+              className={`w-10 h-10 rounded-full flex items-center justify-center transition-all ${
+                isLike 
+                ? 'bg-orange-500 text-white' 
+                : 'bg-white/5 text-orange-500 hover:bg-white/10'
+              }`}
+            >
+              {isLike ? <AiOutlineLike size={20} /> : <AiOutlineLike size={20} />}
+            </button>
+
+            {/* Arrow Icon */}
+            {/* <div className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center group-hover:bg-orange-500 transition-all">
+              <FiArrowRight className="text-white group-hover:scale-110" />
+            </div> */}
           </div>
         </div>
       </div>

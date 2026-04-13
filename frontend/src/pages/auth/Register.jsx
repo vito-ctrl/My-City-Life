@@ -87,7 +87,7 @@ const Register = () => {
         setServerError(data.message || 'Something went wrong. Please try again.');
       }
     } catch (err) {
-      setServerError('Network error. Please check your connection.');
+      setServerError('Network error. Please check your connection.', err);
     }
   };
 

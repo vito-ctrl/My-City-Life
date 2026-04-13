@@ -52,9 +52,7 @@ class LikeController extends Controller
         }
     }
 
-    /**
-     * Helper to resolve standard plural resource types to integer Eloquent models.
-     */
+    
     private function getModelInstance($type, $id)
     {
         switch (strtolower($type)) {

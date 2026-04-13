@@ -15,6 +15,7 @@ use App\Models\Business;
 use App\Models\Booking;
 use App\Models\UserProfile;
 use Spatie\Permission\Traits\HasRoles;
+use App\Models\Favorites;
 
 class User extends Authenticatable implements JWTSubject
 {
@@ -93,6 +94,10 @@ class User extends Authenticatable implements JWTSubject
     public function isAdmin()
     {
         return $this->role === 'admin';
+    }
+
+    public function favorites(){
+        return $this->hasMany(Favorites::class);
     }
 
 }
