@@ -1,17 +1,21 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
-import { FiUser, FiLogOut, FiLayout, FiPlusSquare, FiCompass, FiX } from 'react-icons/fi';
+import { FiUser, FiLogOut, FiLayout, FiPlusSquare, FiCompass, FiX, FiHeart } from 'react-icons/fi';
 
 const Header = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [user, setUser] = useState(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [loading, setLoading] = useState(true);
   const token = localStorage.getItem('token');
 
   useEffect(() => {
     const fetchUser = async () => {
-      if (!token) return;
+      if (!token) {
+        setLoading(false); // No token, no need to wait
+        return;
+      }
       try {
         const res = await fetch('http://127.0.0.1:8000/api/profile', {
           headers: { 'Authorization': `Bearer ${token}`}
@@ -21,12 +25,16 @@ const Header = () => {
         setUser(data.user);
       } catch (err) {
         console.error("Auth check failed", err);
+      } finally {
+        setLoading(false); // Stop loading regardless of success
       }
     };
     fetchUser();
   }, [token]);
 
-      console.log(user);
+  if (loading) return <div className="h-[72px] bg-[#0a0a0a]" />;
+
+      console.log("header", user);
   const handleLogout = () => {
     localStorage.removeItem('token');
     setUser(null);
@@ -62,12 +70,12 @@ const Header = () => {
 
     return (
       <>
-        <Link to="/activity/manage" className={`flex items-center gap-2 text-[11px] font-black uppercase tracking-widest transition-colors ${isActive('/activity/manage') ? 'text-orange-500' : 'text-white/60 hover:text-white'}`}>
+        <Link to='/activity/manage' className={`flex items-center gap-2 text-[11px] font-black uppercase tracking-widest transition-colors ${isActive('/activity/manage') ? 'text-orange-500' : 'text-white/60 hover:text-white'}`}>
           <FiCompass /> Manage Activities
         </Link>
-        <Link to="/activity/create" className={`flex items-center gap-2 text-[11px] font-black uppercase tracking-widest transition-colors ${isActive('/activity/create') ? 'text-orange-500' : 'text-white/60 hover:text-white'}`}>
+        {/* <Link to="/activity/create" className={`flex items-center gap-2 text-[11px] font-black uppercase tracking-widest transition-colors ${isActive('/activity/create') ? 'text-orange-500' : 'text-white/60 hover:text-white'}`}>
           <FiPlusSquare /> Create Activity
-        </Link>
+        </Link> */}
       </>
     );
   };
@@ -113,7 +121,7 @@ const Header = () => {
               </button>
             ) : (
               <button 
-                onClick={() => navigate('/login')}
+              onClick={() => navigate('/login')}
                 className="bg-white text-black px-6 py-2 rounded-full text-[11px] font-black uppercase tracking-widest hover:bg-orange-500 hover:text-white transition-all"
               >
                 Sign In
@@ -173,6 +181,17 @@ const Header = () => {
               <div className="flex items-center gap-4">
                 <FiUser size={20} className={isActive('/profile') ? 'text-white' : 'text-orange-500'} />
                 <span className="font-bold text-xs uppercase tracking-widest">My Profile</span>
+              </div>
+            </Link>
+
+            <Link 
+              to="/favorit" 
+              onClick={() => setIsSidebarOpen(false)}
+              className={`flex items-center justify-between p-4 rounded-2xl transition-all group ${isActive('/favorit') ? 'bg-orange-500 text-white' : 'bg-white/5 text-white/70 hover:bg-white/10 hover:text-white'}`}
+            >
+              <div className="flex items-center gap-4">
+                <FiHeart size={20} className={isActive('/favorit') ? 'text-white' : 'text-orange-500'} />
+                <span className="font-bold text-xs uppercase tracking-widest">favorit's</span>
               </div>
             </Link>
             

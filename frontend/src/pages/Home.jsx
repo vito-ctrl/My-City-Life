@@ -9,6 +9,8 @@ const Home = () => {
   const [activities, setActivities] = useState([]);
   const [businesses, setBusinesses] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [location, setLocation] = useState([]);
+
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -27,6 +29,7 @@ const Home = () => {
         console.error("Discovery error:", error);
       } finally {
         setLoading(false);
+        // setTimeout(() => setLoading(false), 300);
       }
     };
     fetchData();
@@ -60,13 +63,15 @@ const Home = () => {
 
         const country = components.country;
 
-        console.log(city, country );
+        setLocation([city, country]);
       } catch (err) {
         console.error("Location denied or unavailable : ", err);
       }
     };
-    // getCityCountry()
+    getCityCountry()
   }, []);
+
+  console.log("location : ", location);
 
   return (
     <div className="bg-[#0a0a0a]">
@@ -105,6 +110,33 @@ const Home = () => {
               alt="City" 
             />
           </div>
+        </section>
+
+        <section className="px-8 md:px-16 py-14">
+          <div className="flex flex-col md:flex-row md:items-end justify-between mb-16 gap-6">
+            <div>
+              {/* <span className="text-orange-500 text-[11px] font-black tracking-[3px] uppercase">Explore</span> */}
+              <h2 className="text-5xl font-black text-white leading-tight italic mt-2">ACTIVITIES IN YOUR CITY</h2>
+            </div>
+            {/* <button className="px-8 py-3 bg-white/5 border border-white/10 rounded-full text-[11px] font-bold tracking-widest uppercase hover:bg-white/10 transition-all">
+              View All Activities
+            </button> */}
+          </div>
+
+          {loading ? (
+            <div className="text-white/20 font-black animate-pulse">LOADING DISCOVERIES...</div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {activities.filter((e) => e.location === location[0]).map((act) => (
+                <ActivityCard 
+                  key={act.id} 
+                  item={act} 
+                  type="activity" 
+                  onClick={() => navigate(`/activities/${act.id}`)} 
+                />
+              ))}
+            </div>
+          )}
         </section>
 
         {/* Dynamic Activities Section */}
