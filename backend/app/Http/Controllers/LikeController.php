@@ -76,4 +76,34 @@ class LikeController extends Controller
                 throw new \Exception("Unsupported commentable type: {$type}");
         }
     }
+
+    public function getActivityLikes($id)
+    {
+        try {
+            $user = JWTAuth::parseToken()->authenticate();
+
+            $activity = Activity::findOrFail($id);
+
+            $likesCount = $activity->likes()->count();
+
+            $isLiked = $activity->likes()
+                ->where('user_id', $user->id)
+                ->exists();
+
+            return response()->json([
+                'likes_count' => $likesCount,
+                'liked' => $isLiked
+            ]);
+
+        } catch (ModelNotFoundException $e) {
+            return response()->json([
+                'error' => 'Activity not found'
+            ], 404);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
 }

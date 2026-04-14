@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use App\Models\User;
+use App\Models\Activity;
 
 class Favorites extends Model
 {
@@ -15,5 +16,9 @@ class Favorites extends Model
 
     public function user(){
         return $this->belongsTo(User::class);
+    }
+
+    public function activitie() {
+        return $this->belongsTo(Activity::class);
     }
 }

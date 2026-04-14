@@ -50,6 +50,7 @@ Route::middleware('auth:api')->group(function () {
     Route::delete('/businesses/{id}',   [BusinessController::class, 'destroy']);
 
     // Likes (Toggle Like/Unlike)
+    Route::get('/like/activities/{id}', [LikeController::class, 'getActivityLikes']);
     Route::post('/like/{type}/{id}', [LikeController::class, 'toggle']);
     Route::post('/favorite/{type}/{id}', [FavoritesController::class, 'toggle']);
 

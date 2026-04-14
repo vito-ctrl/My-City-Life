@@ -1,11 +1,17 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { FiMapPin, FiArrowRight, FiHeart } from 'react-icons/fi';
 import { IoHeartOutline, IoHeartSharp } from "react-icons/io5"; 
 import { AiOutlineLike } from "react-icons/ai";
+import { getActivityLikes } from '../../services/like'
 
 const ActivityCard = ({ item, type = 'activity', onClick }) => {
+  // let like;
+  // console.log("like : ", like);
+  const [likes, setLikes] = useState(0);
+  const [liked, setLiked] = useState(false);
+
   const [isFavorite, setIsFavorite] = useState(false);
-  const [ isLike, setIsLike ] = useState(false);
+
 
   const title = item.title || item.name;
   const description = item.description || item.type;
@@ -18,15 +24,37 @@ const ActivityCard = ({ item, type = 'activity', onClick }) => {
   const token = localStorage.getItem('token');
 
   // Function to handle favorite click
-  const handleFavorite = (e) => {
-    e.stopPropagation(); // CRITICAL: Prevents the card's onClick (navigate) from firing
-    setIsFavorite(!isFavorite);
-    console.log("yesssssss");
+  const handleFavorite = async(e) => {
+    e.stopPropagation();
+    
+    const res = await fetch(`http://127.0.0.1:8000/api/favorite/activities/${item.id}`, {
+      method: 'POST',
+      headers: {
+        'Authorization' : `Bearer ${token}`,
+      }
+    })
+    const data = res.json();
+    // like = data.liked;
   };
+
+  useEffect(() => {
+    try{
+      const fetchLikes = async () => {
+        const data = await getActivityLikes(item.id);
+        setLikes(data.likes_count);
+        setLiked(data.liked);
+      }
+
+      fetchLikes();
+    } catch ( err ) {
+      console.log("error in fetching likes : ", err );
+    }
+  }, []);
 
   const handleLike = async(e) => {
     e.stopPropagation();
-    console.log("hi", item);
+
+    // console.log("hi", item);
     try{
       const res = await fetch(`http://127.0.0.1:8000/api/like/activities/${item.id}`, {
         method: 'POST',
@@ -34,14 +62,15 @@ const ActivityCard = ({ item, type = 'activity', onClick }) => {
           'Authorization' : `Bearer ${token}`,
         }
       });
-      setIsLike(!isLike);
-      console.log(res.json());
+      // const data = await res.json()
+      // data.liked
+      setLiked(!liked);
     }catch(err){
       console.log("like error : ", err);
     }
-
-    console.log('like');
   } 
+
+  console.log("liked : ", liked);
 
   return (
     <div 
@@ -88,18 +117,13 @@ const ActivityCard = ({ item, type = 'activity', onClick }) => {
             <button 
               onClick={handleLike}
               className={`w-10 h-10 rounded-full flex items-center justify-center transition-all ${
-                isLike 
+                liked 
                 ? 'bg-orange-500 text-white' 
                 : 'bg-white/5 text-orange-500 hover:bg-white/10'
               }`}
             >
-              {isLike ? <AiOutlineLike size={20} /> : <AiOutlineLike size={20} />}
+              {liked ? <AiOutlineLike size={20} /> : <AiOutlineLike size={20} />}
             </button>
-
-            {/* Arrow Icon */}
-            {/* <div className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center group-hover:bg-orange-500 transition-all">
-              <FiArrowRight className="text-white group-hover:scale-110" />
-            </div> */}
           </div>
         </div>
       </div>

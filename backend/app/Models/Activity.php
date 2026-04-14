@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use App\Models\Organizer;
 use App\Models\Review;
+use App\Models\Favorites;
 
 class Activity extends Model
 {
@@ -45,5 +46,9 @@ class Activity extends Model
     {
         if (!$user) return false;
         return $this->likes()->where('user_id', $user->id)->exists();
+    }
+
+    public function favorites() {
+        return $this->hasMany(Favorites::class);
     }
 }

@@ -21,7 +21,6 @@ const Home = () => {
         
         const acts = await actRes.json();
         const buss = await busRes.json();
-        console.log(acts);
         
         setActivities(acts.data || []);
         setBusinesses(buss.data || []);4
