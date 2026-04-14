@@ -18,6 +18,7 @@ import ActivitiesDeatels from './pages/activities/ActivitiesDeatels';
 import ManageActivities from './pages/activities/ManageActivities';
 import Profile from './pages/Profile';
 import LandingPage from './pages/LandingPage';
+import ActivitiesFavorites from './pages/activities/ActivitiesFavorites';
 
 
 function App() {
@@ -37,8 +38,9 @@ function App() {
         <Route path="/Dashboard" element={<Dashboard />} />
         <Route path="/:type/:id" element={<ActivitiesDeatels />} />
         <Route path="/activity/manage" element={<ManageActivities />} />
-        <Route path="/profile/:id" element={<Profile />} />
+        <Route path="/profile" element={<Profile />} />
         <Route path="/landing" element={<LandingPage />} />
+        <Route path="/Favorites" element={<ActivitiesFavorites />} />
         
         {/* Test Route */}
         <Route path="/test-booking" element={<TestBooking />} />

@@ -8,8 +8,8 @@ const Header = () => {
   const [user, setUser] = useState(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [loading, setLoading] = useState(true);
+  
   const token = localStorage.getItem('token');
-
   useEffect(() => {
     const fetchUser = async () => {
       if (!token) {
@@ -21,7 +21,6 @@ const Header = () => {
           headers: { 'Authorization': `Bearer ${token}`}
         });
         const data = await res.json();
-        console.log(data);
         setUser(data.user);
       } catch (err) {
         console.error("Auth check failed", err);
@@ -34,7 +33,6 @@ const Header = () => {
 
   if (loading) return <div className="h-[72px] bg-[#0a0a0a]" />;
 
-      console.log("header", user);
   const handleLogout = () => {
     localStorage.removeItem('token');
     setUser(null);
@@ -43,7 +41,6 @@ const Header = () => {
   };
 
   const isActive = (path) => location.pathname === path;
-  // console.log(user);
 
   // Primary Navigation (Stays in the Header)
   const NavLinks = () => {
@@ -174,7 +171,7 @@ const Header = () => {
           {/* Action Links */}
           <div className="flex flex-col gap-3">
             <Link 
-              to="/profile" 
+              to='/profile' 
               onClick={() => setIsSidebarOpen(false)}
               className={`flex items-center justify-between p-4 rounded-2xl transition-all group ${isActive('/profile') ? 'bg-orange-500 text-white' : 'bg-white/5 text-white/70 hover:bg-white/10 hover:text-white'}`}
             >
@@ -185,12 +182,12 @@ const Header = () => {
             </Link>
 
             <Link 
-              to="/favorit" 
+              to="/Favorites" 
               onClick={() => setIsSidebarOpen(false)}
-              className={`flex items-center justify-between p-4 rounded-2xl transition-all group ${isActive('/favorit') ? 'bg-orange-500 text-white' : 'bg-white/5 text-white/70 hover:bg-white/10 hover:text-white'}`}
+              className={`flex items-center justify-between p-4 rounded-2xl transition-all group ${isActive('/Favorites') ? 'bg-orange-500 text-white' : 'bg-white/5 text-white/70 hover:bg-white/10 hover:text-white'}`}
             >
               <div className="flex items-center gap-4">
-                <FiHeart size={20} className={isActive('/favorit') ? 'text-white' : 'text-orange-500'} />
+                <FiHeart size={20} className={isActive('/Favorites') ? 'text-white' : 'text-orange-500'} />
                 <span className="font-bold text-xs uppercase tracking-widest">favorit's</span>
               </div>
             </Link>

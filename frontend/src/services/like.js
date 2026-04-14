@@ -7,8 +7,8 @@ export const getActivityLikes = async (id) => {
             method : 'GET',
             headers : { 'Authorization' : `Bearer ${token}`}
         })
-
-        return res.json();
+        const data = await res.json();
+        return data;
     } catch ( err ) {
         console.error("Error fetching likes:", err);
         throw err;

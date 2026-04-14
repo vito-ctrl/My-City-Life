@@ -25,19 +25,17 @@ const ActivityCard = ({ item, type = 'activity', onClick }) => {
   const badgeColor = isFree ? 'bg-green-500/90' : 'bg-orange-500/90';
 
   const token = localStorage.getItem('token');
+  // console.log("token", token);
 
   useEffect(() => {
     try{
       const fetchLikes = async () => {
         const data = await getActivityLikes(item.id);
-        console.log("favorute likes : ", data);
-        setLikes(data.likes_count);
         setLiked(data.liked);
       }
 
       const fetchFavorites = async () => {
         const data = await getActivityFavorites(item.id);
-        console.log("favorute data : ", data);
         setFavorited(data.favorited);
       }
 
@@ -75,12 +73,9 @@ const ActivityCard = ({ item, type = 'activity', onClick }) => {
       });
       setLiked(!liked);
     }catch(err){
-      console.log("like error : ", err);
+      console.error("like error : ", err);
     }
   } 
-
-  console.log("liked : ", liked);
-  console.log("favorited : ", favorited);
 
   return (
     <div 
@@ -108,7 +103,7 @@ const ActivityCard = ({ item, type = 'activity', onClick }) => {
           <h3 className="text-xl font-bold text-white group-hover:text-orange-500 transition-colors">{title}</h3>
           <p className="text-white/40 text-sm leading-relaxed line-clamp-2">{description}</p>
         </div>
-
+        {token ? 
         <div className="pt-4 flex items-center justify-between border-t border-white/5">
           <span className="text-[11px] font-bold text-white/20 uppercase tracking-widest">View Details</span>
           <div className='flex gap-3'>
@@ -136,6 +131,8 @@ const ActivityCard = ({ item, type = 'activity', onClick }) => {
             </button>
           </div>
         </div>
+        : 
+        "none" }
       </div>
     </div>
   );

@@ -6,8 +6,8 @@ export const getActivityFavorites = async (id) => {
             method : 'GET',
             headers : { 'Authorization' : `Bearer ${token}`}
         });
-        
-        return res.json();
+        const data = await res.json();
+        return data
     } catch (err) {
         console.error("Error fetching favorites:", err);
         throw err;    

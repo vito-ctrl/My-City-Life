@@ -98,4 +98,17 @@ class FavoritesController extends Controller
             ], 500);
         }
     }
+
+    public function getAllFavorites(){
+        $user = JWTAuth::parseToken()->authenticate();
+        $favorites = $user->favorites;
+
+        $activity = [];
+        
+        foreach($favorites as $favorite){
+            array_push($activity, Activity::find($favorite->activity_id));
+        }
+        return $activity;
+
+    }
 }
