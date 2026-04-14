@@ -52,6 +52,9 @@ Route::middleware('auth:api')->group(function () {
     // Likes (Toggle Like/Unlike)
     Route::get('/like/activities/{id}', [LikeController::class, 'getActivityLikes']);
     Route::post('/like/{type}/{id}', [LikeController::class, 'toggle']);
+
+    // Likes (Toggle Favorite/Unfavorite)
+    Route::get('/favorite/activities/{id}', [FavoritesController::class, 'getActivityFavorites']);
     Route::post('/favorite/{type}/{id}', [FavoritesController::class, 'toggle']);
 
     // Comments

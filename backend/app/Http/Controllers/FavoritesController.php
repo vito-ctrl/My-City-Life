@@ -69,4 +69,33 @@ class FavoritesController extends Controller
                 throw new \Exception("Unsupported commentable type: {$type}");
         }
     }
+
+    public function getActivityFavorites($id){
+        try {
+            $user = $user = JWTAuth::parseToken()->authenticate();
+
+            $activity = Activity::findOrFail($id);
+
+            $likesCount = $activity->favorites()->count();
+
+            $isLike = $activity->favorites()
+                ->where('user_id', $user->id)
+                ->exists();
+            
+            return response()->json([
+                'favorites_count' => $likesCount,
+                'favorited' => $isLike
+            ]);
+
+        } catch (ModelNotFoundException $e) {
+            return response()->json([
+                'error' => 'Activity not found'
+            ], 404);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
 }
