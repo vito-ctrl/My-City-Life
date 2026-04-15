@@ -39,13 +39,11 @@ const ManageActivities = () => {
   };
 
   const handleDelete = async (id) => {
-    if(!window.confirm("Are you sure you want to delete this activity?")) return;
     try {
       await fetch(`http://127.0.0.1:8000/api/activities/${id}`, {
         method: 'DELETE',
         headers: { 
-            'Accept' : 'application/json',
-            'Authorization': `Bearer ${token}` 
+          'Authorization': `Bearer ${token}`,
         }
       });
       fetchMyActivities();
@@ -119,11 +117,6 @@ const ManageActivities = () => {
               <div key={act.id} className="group relative bg-white/[0.02] border border-white/5 p-5 rounded-[28px] flex flex-col md:flex-row justify-between items-center gap-6 hover:bg-white/[0.04] hover:border-orange-500/20 transition-all duration-500">
                 
                 <div className="flex items-center gap-6 w-full md:w-auto">
-                  <div className="relative shrink-0 overflow-hidden rounded-2xl w-24 h-24 border border-white/10">
-                    <img src={act.image} alt="" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-                  </div>
-                  
                   <div>
                     <span className="text-[10px] font-black text-orange-500 uppercase tracking-widest mb-1 block">
                       {act.category}

@@ -85,7 +85,7 @@ const Profile = () => {
         {/* Profile Identity Card */}
         <div className="relative -mt-36 flex flex-col md:flex-row items-end gap-10 mb-16">
           <div className="relative">
-            <img src={profileImage} alt={userData.name} className="w-56 h-56 object-cover rounded-[48px] border-8 border-[#0a0a0a] shadow-2xl" />
+            <img src={userData.image} alt={userData.name} className="w-56 h-56 object-cover rounded-[48px] border-8 border-[#0a0a0a] shadow-2xl" />
             <div className="absolute -bottom-2 -right-2 bg-orange-500 p-3 rounded-2xl shadow-xl">
                <FiActivity className="text-white" size={24} />
             </div>
