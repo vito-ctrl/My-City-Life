@@ -17,10 +17,10 @@ return new class extends Migration
             $table->string('title');
             $table->text('description');
             $table->string('category');
-            $table->string('location');
+            $table->string('location')->nullable();
             $table->float('price')->default(0);
             $table->boolean('is_free')->default(false); 
-            $table->string('image')->nullable();
+            $table->text('image')->nullable();
             $table->dateTime('start_date')->nullable();
             $table->dateTime('end_date')->nullable();
             $table->string('duration')->nullable();
