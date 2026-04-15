@@ -20,9 +20,9 @@ export const postComment = async (id, body) => {
                 'Accept' : 'application/json',
                 'Authorization' : `Bearer ${token}`
             },
-            body : body
+            body : JSON.stringify({body})
         })
-        const data = res.json();
+        const data = await res.json();
 
         if(!res.ok){
             console.error(data);

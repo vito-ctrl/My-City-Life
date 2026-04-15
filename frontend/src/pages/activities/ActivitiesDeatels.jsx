@@ -2,17 +2,19 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
   FiMapPin, FiCalendar, FiArrowLeft, FiTag,
-  FiShield, FiChevronRight, FiUser, FiImage
+  FiShield, FiChevronRight, FiImage, FiSend, FiMessageSquare, FiClock
 } from 'react-icons/fi';
-import { getComments } from '../../services/comment';
+import { getComments, postComment } from '../../services/comment';
+
 const ActivitiesDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [item, setItem] = useState(null);
   const [loading, setLoading] = useState(true);
   const [mainImage, setMainImage] = useState('');
-  const [comments, setComments] = useState([]);
+  const [fetchcomments, setFetchcommentsComments] = useState([]);
   const [comment, setComment] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     const fetchDetails = async () => {
@@ -23,7 +25,8 @@ const ActivitiesDetails = () => {
         if (json.data?.image_urls?.length > 0) {
           setMainImage(json.data.image_urls[0]);
         }
-        setComments(await getComments(id));
+        const commentsData = await getComments(id);
+        setFetchcommentsComments(commentsData);
       } catch (error) {
         console.error('Fetch error:', error);
       } finally {
@@ -33,12 +36,22 @@ const ActivitiesDetails = () => {
     fetchDetails();
   }, [id]);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!comment.trim() || isSubmitting) return;
 
+    setIsSubmitting(true);
+    try {
+      await postComment(id, comment);
+      setComment('');
+      const updatedComments = await getComments(id);
+      setFetchcommentsComments(updatedComments);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsSubmitting(false);
+    }
   }
-
-  console.log(comments);
 
   if (loading) return (
     <div className="min-h-screen bg-zinc-950 flex items-center justify-center">
@@ -104,7 +117,6 @@ const ActivitiesDetails = () => {
             )}
           </div>
 
-          {/* Thumbnail strip */}
           {item.image_urls?.length > 1 && (
             <div className="flex gap-2 overflow-x-auto pb-1">
               {item.image_urls.map((url, i) => (
@@ -155,13 +167,10 @@ const ActivitiesDetails = () => {
           </div>
         </section>
 
-        {/* ── Divider ── */}
         <div className="border-t border-zinc-800" />
 
-        {/* ── Description + Info Grid (two col on desktop) ── */}
+        {/* ── Description + Info Grid ── */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-
-          {/* Description — takes 2/3 */}
           <div className="lg:col-span-2 space-y-4">
             <h2 className="text-xs font-semibold uppercase tracking-widest text-zinc-500">About this activity</h2>
             <p className="text-zinc-300 leading-relaxed text-base">
@@ -169,10 +178,7 @@ const ActivitiesDetails = () => {
             </p>
           </div>
 
-          {/* Info sidebar — takes 1/3 */}
           <div className="space-y-4">
-
-            {/* Requirements */}
             <div className="rounded-xl bg-zinc-900 border border-zinc-800 p-5 space-y-2">
               <div className="flex items-center gap-2 text-zinc-500 text-xs font-semibold uppercase tracking-widest">
                 <FiShield size={12} className="text-amber-500" />
@@ -183,7 +189,6 @@ const ActivitiesDetails = () => {
               </p>
             </div>
 
-            {/* Duration if present */}
             {item.duration && (
               <div className="rounded-xl bg-zinc-900 border border-zinc-800 p-5 space-y-2">
                 <div className="flex items-center gap-2 text-zinc-500 text-xs font-semibold uppercase tracking-widest">
@@ -195,13 +200,10 @@ const ActivitiesDetails = () => {
           </div>
         </div>
 
-        {/* ── Divider ── */}
         <div className="border-t border-zinc-800" />
 
         {/* ── Provider & CTA ── */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
-
-          {/* Provider */}
           <div className="flex items-center gap-4">
             <div className="w-11 h-11 rounded-full bg-amber-500 flex items-center justify-center text-black font-bold text-lg flex-shrink-0">
               {item.user?.name?.charAt(0) ?? '?'}
@@ -213,19 +215,77 @@ const ActivitiesDetails = () => {
             </div>
           </div>
 
-          {/* CTA */}
           <button className="flex items-center gap-3 bg-amber-500 hover:bg-amber-400 active:scale-95 text-black font-bold text-sm px-7 py-3.5 rounded-xl transition-all shadow-lg shadow-amber-500/20">
             Confirm Booking
             <FiChevronRight size={16} />
           </button>
         </div>
 
-        {/* ── Comment section placeholder ── */}
-        <form action="submit" onClick={handleSubmit}>
-          <h2 className="text-lg font-semibold text-white mb-2">Comments</h2>
-          <input type="text" name='comment' onChange={e => setComment(e.target.value)} className='w-full h-20 text-zinc-600 text-sm italic outline-none'/>
-          <button>send</button>
-        </form>
+        {/* ── Comment Section Rebuilt ── */}
+        <section className="pt-8 space-y-8">
+          <div className="flex items-center justify-between border-b border-zinc-800 pb-4">
+            <div className="flex items-center gap-3">
+              <FiMessageSquare className="text-amber-500" />
+              <h2 className="text-lg font-bold text-white">Community Feed</h2>
+            </div>
+            <span className="text-xs font-bold text-zinc-600 uppercase tracking-[0.2em]">
+              {fetchcomments.length} Comments
+            </span>
+          </div>
+
+          {/* New Comment Form */}
+          <form onSubmit={handleSubmit} className="relative group">
+            <input
+              type="text"
+              name="comment"
+              value={comment}
+              onChange={(e) => setComment(e.target.value)}
+              placeholder="Write a comment..."
+              className="w-full h-14 pl-5 pr-16 bg-zinc-900 border border-zinc-800 rounded-2xl text-sm text-white placeholder:text-zinc-600 placeholder:italic focus:outline-none focus:border-amber-500/50 transition-all"
+            />
+            <button 
+              disabled={isSubmitting}
+              className="absolute right-2 top-1/2 -translate-y-1/2 p-2.5 bg-amber-500 text-black rounded-xl hover:bg-white transition-all disabled:opacity-50"
+            >
+              <FiSend size={16} />
+            </button>
+          </form>
+
+          {/* Comments List */}
+          <div className="space-y-4">
+            {fetchcomments.map((c) => (
+              <div key={c.id} className="p-5 bg-zinc-900/40 border border-zinc-800/50 rounded-2xl flex gap-4 hover:border-zinc-700 transition-all">
+                <div className="flex-shrink-0">
+                  <div className="w-10 h-10 rounded-xl bg-zinc-800 flex items-center justify-center text-zinc-400 font-bold border border-white/5 overflow-hidden">
+                    {c.user?.image ? (
+                      <img src={c.user.image} alt="" className="w-full h-full object-cover" />
+                    ) : (
+                      c.user?.name?.charAt(0).toUpperCase()
+                    )}
+                  </div>
+                </div>
+                <div className="flex-1 space-y-1">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-bold text-zinc-200">{c.user?.name}</span>
+                    <span className="flex items-center gap-1.5 text-[10px] font-bold text-zinc-600 uppercase tracking-tighter">
+                      <FiClock size={10} />
+                      {new Date(c.created_at).toLocaleDateString()}
+                    </span>
+                  </div>
+                  <p className="text-zinc-400 text-sm leading-relaxed italic">
+                    {c.body}
+                  </p>
+                </div>
+              </div>
+            ))}
+
+            {fetchcomments.length === 0 && (
+              <div className="py-12 text-center">
+                <p className="text-zinc-700 text-xs font-bold uppercase tracking-widest italic">No messages yet. Start the conversation.</p>
+              </div>
+            )}
+          </div>
+        </section>
 
       </div>
     </div>
