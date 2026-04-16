@@ -149,7 +149,7 @@ const Register = () => {
                 <select name="role" required className={`${inputClass} text-white/70 appearance-none`} onChange={handleChange}>
                   <option value="user" className="bg-zinc-900">User</option>
                   <option value="admin" className="bg-zinc-900">Admin</option>
-                  <option value="organizer" className="bg-zinc-900">Organizer</option>
+                  <option value="Organizer" className="bg-zinc-900">Organizer</option>
                 </select>
                 {errors.role && <p className={errorClass}>{errors.role[0]}</p>}
               </div>
@@ -211,7 +211,7 @@ const Register = () => {
             )}
 
             {/* Organizer fields — shown only when role is 'organizer' */}
-            {formData.role === 'organizer' && (
+            {formData.role === 'Organizer' && (
               <div className="flex flex-col gap-4">
                 <p className="text-xs text-white/45 -mb-1">Business Details</p>
 

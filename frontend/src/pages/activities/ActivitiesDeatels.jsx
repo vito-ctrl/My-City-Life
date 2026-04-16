@@ -95,8 +95,8 @@ const ActivitiesDetails = () => {
           </span>
           Back
         </button>
-        <span className="text-zinc-700">·</span>
-        <span className="text-zinc-500 text-sm truncate">{item.title}</span>
+        {/* <span className="text-zinc-700">·</span>
+        <span className="text-zinc-500 text-sm truncate">{item.title}</span> */}
       </header>
 
       <div className="max-w-5xl mx-auto px-4 sm:px-6 py-10 space-y-10">

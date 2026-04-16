@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
-import { FiUser, FiLogOut, FiLayout, FiPlusSquare, FiCompass, FiX, FiHeart } from 'react-icons/fi';
+import { FiUser, FiLogOut, FiCompass, FiX, FiHeart, FiCalendar, FiList, FiGrid } from 'react-icons/fi';
 
 const Header = () => {
   const navigate = useNavigate();
@@ -46,20 +46,38 @@ const Header = () => {
   const NavLinks = () => {
     if (!user) {
       return (
-        <Link to="/activities" className="text-sm font-bold tracking-widest uppercase hover:text-orange-500 transition-colors text-white">
+        <Link to="/" className="text-[11px] font-black tracking-widest uppercase hover:text-orange-500 transition-colors text-white/60">
           Explore
         </Link>
       );
     }
 
-    if (user.role === 'organizer') {
+    if (user.role === 'Organizer') {
       return (
         <>
-          <Link to="/dashboard" className={`flex items-center gap-2 text-[11px] font-black uppercase tracking-widest transition-colors ${isActive('/dashboard') ? 'text-orange-500' : 'text-white/60 hover:text-white'}`}>
-            <FiLayout /> Stats
+          <Link
+            to="/organizer/dashboard"
+            className={`flex items-center gap-2 text-[11px] font-black uppercase tracking-widest transition-colors ${
+              isActive('/organizer/dashboard') ? 'text-orange-500' : 'text-white/60 hover:text-white'
+            }`}
+          >
+            <FiGrid /> Dashboard
           </Link>
-          <Link to="/my-businesses" className={`flex items-center gap-2 text-[11px] font-black uppercase tracking-widest transition-colors ${isActive('/my-businesses') ? 'text-orange-500' : 'text-white/60 hover:text-white'}`}>
-            <FiPlusSquare /> My Businesses
+          <Link
+            to="/organizer/bookings"
+            className={`flex items-center gap-2 text-[11px] font-black uppercase tracking-widest transition-colors ${
+              isActive('/organizer/bookings') ? 'text-orange-500' : 'text-white/60 hover:text-white'
+            }`}
+          >
+            <FiCalendar /> Bookings
+          </Link>
+          <Link
+            to="/activity/manage"
+            className={`flex items-center gap-2 text-[11px] font-black uppercase tracking-widest transition-colors ${
+              isActive('/activity/manage') ? 'text-orange-500' : 'text-white/60 hover:text-white'
+            }`}
+          >
+            <FiList /> My Activities
           </Link>
         </>
       );
@@ -67,12 +85,9 @@ const Header = () => {
 
     return (
       <>
-        <Link to='/activity/manage' className={`flex items-center gap-2 text-[11px] font-black uppercase tracking-widest transition-colors ${isActive('/activity/manage') ? 'text-orange-500' : 'text-white/60 hover:text-white'}`}>
-          <FiCompass /> Manage Activities
+        <Link to='/' className={`flex items-center gap-2 text-[11px] font-black uppercase tracking-widest transition-colors ${isActive('/') ? 'text-orange-500' : 'text-white/60 hover:text-white'}`}>
+          <FiCompass /> Explore
         </Link>
-        {/* <Link to="/activity/create" className={`flex items-center gap-2 text-[11px] font-black uppercase tracking-widest transition-colors ${isActive('/activity/create') ? 'text-orange-500' : 'text-white/60 hover:text-white'}`}>
-          <FiPlusSquare /> Create Activity
-        </Link> */}
       </>
     );
   };

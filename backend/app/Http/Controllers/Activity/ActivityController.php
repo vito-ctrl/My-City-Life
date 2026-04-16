@@ -18,18 +18,19 @@ class ActivityController extends Controller
     public function create(Request $request)
     {
         $validated = $request->validate([
-            'title'       => ['required', 'string', 'max:255'],
-            'description' => ['required', 'string'],
-            'category'    => ['required', 'string'],
-            'location'    => ['required', 'string'],
-            'price'       => ['nullable', 'numeric', 'min:0'],
-            'is_free'     => ['required'],
-            'images'      => ['nullable', 'array', 'min:1'],
-            'images.*'    => ['image', 'mimes:jpeg,png,jpg', 'max:2048'],
-            'start_date'  => ['nullable', 'date'],
-            'end_date'    => ['nullable', 'date', 'after:start_date'],
-            'duration'    => ['nullable', 'string', 'max:255'],
-            'requirements'=> ['nullable', 'string'],
+            'title'        => ['required', 'string', 'max:255'],
+            'description'  => ['required', 'string'],
+            'category'     => ['required', 'string'],
+            'location'     => ['required', 'string'],
+            'price'        => ['nullable', 'numeric', 'min:0'],
+            'is_free'      => ['required'],
+            'images'       => ['nullable', 'array', 'min:1'],
+            'images.*'     => ['image', 'mimes:jpeg,png,jpg', 'max:2048'],
+            'start_date'   => ['nullable', 'date'],
+            'end_date'     => ['nullable', 'date', 'after:start_date'],
+            'duration'     => ['nullable', 'string', 'max:255'],
+            'requirements' => ['nullable', 'string'],
+            'max_capacity' => ['nullable', 'integer', 'min:1'],
         ]);
 
         $user = JWTAuth::parseToken()->authenticate();
@@ -44,12 +45,6 @@ class ActivityController extends Controller
         $activityData = array_merge($validated, [
             'image' => json_encode($paths) 
         ]);
-            
-        if ($user->isOrganizer()) {
-            return response()->json(['error' => 'Organizers are restricted from creating activities.'], 403);
-        }
-
-
 
         $activity = $user->activities()->create($activityData);
 
@@ -96,16 +91,17 @@ class ActivityController extends Controller
     {
         // Validation handles 'images' as an array of files
         $validated = $request->validate([
-            'title'       => ['sometimes', 'string', 'max:255'],
-            'description' => ['sometimes', 'string'],
-            'category'    => ['sometimes', 'string'],
-            'location'    => ['nullable', 'string'],
-            'price'       => ['nullable', 'numeric', 'min:0'],
-            'is_free'     => ['sometimes'],
-            'images'      => ['nullable', 'array'], 
-            'images.*'    => ['image', 'mimes:jpeg,png,jpg', 'max:2048'],
-            'start_date'  => ['nullable', 'date'],
-            'end_date'    => ['nullable', 'date', 'after_or_equal:start_date'],
+            'title'        => ['sometimes', 'string', 'max:255'],
+            'description'  => ['sometimes', 'string'],
+            'category'     => ['sometimes', 'string'],
+            'location'     => ['nullable', 'string'],
+            'price'        => ['nullable', 'numeric', 'min:0'],
+            'is_free'      => ['sometimes'],
+            'images'       => ['nullable', 'array'], 
+            'images.*'     => ['image', 'mimes:jpeg,png,jpg', 'max:2048'],
+            'start_date'   => ['nullable', 'date'],
+            'end_date'     => ['nullable', 'date', 'after_or_equal:start_date'],
+            'max_capacity' => ['nullable', 'integer', 'min:1'],
         ]);
 
         $user = JWTAuth::parseToken()->authenticate();

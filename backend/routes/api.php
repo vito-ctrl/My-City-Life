@@ -11,6 +11,7 @@ use App\Http\Controllers\LikeController;
 use App\Http\Controllers\CommentController;
 use App\Http\Controllers\Statistic\StatisticController;
 use App\Http\Controllers\FavoritesController;
+use App\Http\Controllers\Organizer\OrganizerController;
 
 // ── Auth (Public) ─────────────────────────────────────────────────────────────
 Route::post('/register', [AuthController::class, 'register']);
@@ -74,6 +75,16 @@ Route::middleware('auth:api')->group(function () {
     Route::get('/statistics/general',           [StatisticController::class, 'general']);
     Route::get('/statistics/activities/{id}',   [StatisticController::class, 'activitySpecific']);
     Route::get('/statistics/businesses/{id}',   [StatisticController::class, 'businessSpecific']);
+
+    // ── Organizer Dashboard ───────────────────────────────────────────────────
+    Route::prefix('organizer')->group(function () {
+        // Summary stats + recent bookings
+        Route::get('/dashboard',                    [OrganizerController::class, 'dashboard']);
+        // All incoming bookings (?status=pending|confirmed|cancelled)
+        Route::get('/bookings',                     [OrganizerController::class, 'bookings']);
+        // Bookings for one specific activity
+        Route::get('/activities/{id}/bookings',     [OrganizerController::class, 'activityBookings']);
+    });
 });
 
 

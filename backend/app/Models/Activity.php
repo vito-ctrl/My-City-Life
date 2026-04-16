@@ -3,7 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use App\Models\Organizer;
+
 use App\Models\Review;
 use App\Models\Favorites;
 
@@ -21,7 +21,8 @@ class Activity extends Model
         'start_date',
         'end_date',
         'duration',
-        'requirements'
+        'requirements',
+        'max_capacity',
     ];
 
     public function user() {
@@ -50,5 +51,10 @@ class Activity extends Model
 
     public function favorites() {
         return $this->hasMany(Favorites::class);
+    }
+
+    public function bookings()
+    {
+        return $this->hasMany(Booking::class);
     }
 }

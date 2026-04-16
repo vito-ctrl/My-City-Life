@@ -158,4 +158,61 @@ public function show($id)
 
     return response()->json($booking);
 }
+
+/**
+ * PATCH /api/bookings/{id}/confirm
+ * Only the owner of the activity can confirm a booking.
+ */
+public function confirm($id)
+{
+    $user    = auth()->user();
+    $booking = Booking::with('activity')->findOrFail($id);
+
+    // Check that the logged-in user owns the activity
+    if ($booking->activity->user_id !== $user->id) {
+        return response()->json(['error' => 'Unauthorized. Only the activity owner can confirm bookings.'], 403);
+    }
+
+    if ($booking->status === 'cancelled') {
+        return response()->json(['error' => 'Cannot confirm a cancelled booking.'], 422);
+    }
+
+    $booking->update(['status' => 'confirmed']);
+
+    return response()->json([
+        'message' => 'Booking confirmed successfully.',
+        'booking' => $booking->fresh(),
+    ]);
+}
+
+/**
+ * PATCH /api/bookings/{id}/cancel
+ * The booker themselves OR the activity owner can cancel.
+ */
+public function cancel($id)
+{
+    $user    = auth()->user();
+    $booking = Booking::with('activity')->findOrFail($id);
+
+    $isBooker        = $booking->user_id === $user->id;
+    $isActivityOwner = $booking->activity->user_id === $user->id;
+
+    if (!$isBooker && !$isActivityOwner) {
+        return response()->json(['error' => 'Unauthorized. You cannot cancel this booking.'], 403);
+    }
+
+    if ($booking->status === 'cancelled') {
+        return response()->json(['error' => 'Booking is already cancelled.'], 422);
+    }
+
+    $booking->update([
+        'status'       => 'cancelled',
+        'cancelled_at' => now(),
+    ]);
+
+    return response()->json([
+        'message' => 'Booking cancelled successfully.',
+        'booking' => $booking->fresh(),
+    ]);
+}
 }

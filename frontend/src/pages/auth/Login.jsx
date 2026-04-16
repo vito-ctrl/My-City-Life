@@ -40,6 +40,8 @@ const Login = () => {
       const data = await res.json();
       if(res.ok){
         localStorage.setItem("token", data.token);
+        // Save the user object so we can read the role in protected routes
+        localStorage.setItem("user", JSON.stringify(data.user));
         navigate('/');
       }else{
         console.error("there is a problem in response : ", res);

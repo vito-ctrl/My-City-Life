@@ -66,7 +66,7 @@ const Home = () => {
         console.error("Location denied or unavailable : ", err);
       }
     };
-    // getCityCountry()
+    getCityCountry()
   }, []);
 
   return (

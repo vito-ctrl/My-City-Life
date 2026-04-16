@@ -4,8 +4,7 @@ import {
   FiActivity, FiCheckCircle, FiClock, FiPlus 
 } from 'react-icons/fi';
 import ActivityForm from './ActivityForm';
-// import { useParams } from 'react-router-dom';
-
+import Header from '../../components/layout/Header';
 const ManageActivities = () => {
   const [activities, setActivities] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
@@ -60,6 +59,7 @@ const ManageActivities = () => {
   return (
     <div className="min-h-screen bg-[#0a0a0a] text-white">
       {/* Dynamic Background Elements */}
+      <Header />
       <div className="fixed top-0 left-0 w-full h-full overflow-hidden pointer-events-none z-0">
         <div className="absolute top-[-10%] right-[-5%] w-[500px] h-[500px] bg-orange-500/5 blur-[120px] rounded-full" />
         <div className="absolute bottom-[-10%] left-[-5%] w-[400px] h-[400px] bg-red-500/5 blur-[120px] rounded-full" />
