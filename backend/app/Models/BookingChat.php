@@ -3,6 +3,8 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use App\Models\Activity;
+
 
 class BookingChat extends Model
 {
@@ -16,5 +18,9 @@ class BookingChat extends Model
     public function messages()
     {
         return $this->hasMany(BookingMessage::class);
+    }
+
+    public function activity(){
+        return $this->belongsTo(Activity::class);
     }
 }
