@@ -228,33 +228,43 @@ public function cancel($id)
 
 private function triggerSocialMatching(Booking $newBooking)
 {
+    $newBooking->load('activity');
+
     // Find other confirmed bookings for the same activity and same date 
     // that are also open to meeting people
     $matches = Booking::where('activity_id', $newBooking->activity_id)
         ->where('user_id', '!=', $newBooking->user_id)
-        ->where('booking_date', $newBooking->booking_date)
+        ->whereDate('booking_date', \Carbon\Carbon::parse($newBooking->booking_date)->toDateString())
         ->where('is_open_to_group', true)
         ->where('status', 'confirmed')
         ->get();
 
     foreach ($matches as $match) {
-        // Create a record in the shared_booking_requests table
-        // We use firstOrCreate to avoid duplicate requests for the same pair
-        \DB::table('shared_booking_requests')->updateOrInsert(
-            [
-                'activity_id' => $newBooking->activity_id,
-                'sender_id'   => $newBooking->user_id,
-                'receiver_id' => $match->user_id,
-            ],
-            [
+        $requestData = [
+            'activity_id' => $newBooking->activity_id,
+            'sender_id'   => $newBooking->user_id,
+            'receiver_id' => $match->user_id,
+        ];
+
+        $sharedRequest = \DB::table('shared_booking_requests')
+            ->where($requestData)
+            ->first();
+
+        if (!$sharedRequest) {
+            $requestId = \DB::table('shared_booking_requests')->insertGetId(array_merge($requestData, [
                 'status'     => 'pending',
                 'created_at' => now(),
                 'updated_at' => now(),
-            ]
-        );
+            ]));
+        } else {
+            \DB::table('shared_booking_requests')->where('id', $sharedRequest->id)->update([
+                'status'     => 'pending',
+                'updated_at' => now(),
+            ]);
+            $requestId = $sharedRequest->id;
+        }
 
-        // TODO: Send a Notification to the $match->user_id 
-        // Example: "Vito is also going to Football Training! Want to chat?"
+        broadcast(new \App\Events\SocialMatchFound($match->user_id, $newBooking->activity->title, $requestId));
     }
 }
 }

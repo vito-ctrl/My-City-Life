@@ -30,10 +30,12 @@ class SocialMatchController extends Controller
      */
     public function accept(Request $request)
     {
-        $request->validate(['request_id' => 'required|exists:shared_booking_requests,id']);
+        $request->validate(['request_id' => 'required']);
         
         $user = auth()->user();
         $matchRequest = SharedBookingRequest::findOrFail($request->request_id);
+
+        // return $matchRequest;
 
         // Security check: Only the receiver can accept
         if ($matchRequest->receiver_id !== $user->id) {

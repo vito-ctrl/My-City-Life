@@ -13,6 +13,7 @@ use App\Http\Controllers\Statistic\StatisticController;
 use App\Http\Controllers\FavoritesController;
 use App\Http\Controllers\Organizer\OrganizerController;
 use App\Http\Controllers\Social\SocialMatchController;
+use App\Http\Controllers\Social\BookingChatController;
 
 // ── Auth (Public) ─────────────────────────────────────────────────────────────
 Route::post('/register', [AuthController::class, 'register']);
@@ -91,6 +92,11 @@ Route::middleware('auth:api')->group(function () {
         Route::get('/pending', [SocialMatchController::class, 'pending']);
         Route::post('/accept', [SocialMatchController::class, 'accept']);
         Route::post('/decline', [SocialMatchController::class, 'decline']);
+
+        // Chat routes
+        Route::get('/chats', [BookingChatController::class, 'index']);
+        Route::get('/chats/{slug}', [BookingChatController::class, 'show']);
+        Route::post('/chats/{slug}/message', [BookingChatController::class, 'sendMessage']);
     });
 });
 

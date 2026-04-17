@@ -18,6 +18,7 @@ class Booking extends Model
         'activity_id',
         'booking_date',
         'number_of_guests',
+        'is_open_to_group',
         'status',
         'booked_at',
         'cancelled_at',
