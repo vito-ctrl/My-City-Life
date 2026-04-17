@@ -70,45 +70,51 @@ class FavoritesController extends Controller
         }
     }
 
-    public function getActivityFavorites($id){
+    public function getFavorites($type, $id)
+    {
         try {
-            $user = $user = JWTAuth::parseToken()->authenticate();
+            $user = JWTAuth::parseToken()->authenticate();
+            $model = $this->getModelInstance($type, $id);
 
-            $activity = Activity::findOrFail($id);
+            $favoritesCount = $model->favorites()->count();
 
-            $likesCount = $activity->favorites()->count();
-
-            $isLike = $activity->favorites()
+            $isFavorited = $model->favorites()
                 ->where('user_id', $user->id)
                 ->exists();
             
             return response()->json([
-                'favorites_count' => $likesCount,
-                'favorited' => $isLike
+                'favorites_count' => $favoritesCount,
+                'favorited' => $isFavorited
             ]);
 
         } catch (ModelNotFoundException $e) {
-            return response()->json([
-                'error' => 'Activity not found'
-            ], 404);
-
+            return response()->json(['error' => ucfirst(trim($type, 's')) . ' not found'], 404);
         } catch (\Exception $e) {
-            return response()->json([
-                'error' => $e->getMessage()
-            ], 500);
+            return response()->json(['error' => $e->getMessage()], 500);
         }
     }
 
-    public function getAllFavorites(){
-        $user = JWTAuth::parseToken()->authenticate();
-        $favorites = $user->favorites;
+    public function getUserFavorites($type)
+    {
+        try {
+            $user = JWTAuth::parseToken()->authenticate();
 
-        $activity = [];
-        
-        foreach($favorites as $favorite){
-            array_push($activity, Activity::find($favorite->activity_id));
+            if (strtolower($type) === 'activities') {
+                $favorites = Activity::whereHas('favorites', function ($query) use ($user) {
+                    $query->where('user_id', $user->id);
+                })->get();
+            } elseif (strtolower($type) === 'businesses') {
+                $favorites = Business::whereHas('favorites', function ($query) use ($user) {
+                    $query->where('user_id', $user->id);
+                })->get();
+            } else {
+                throw new \Exception("Unsupported favorite type.");
+            }
+
+            return response()->json($favorites);
+
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
         }
-        return $activity;
-
     }
 }

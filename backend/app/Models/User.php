@@ -100,4 +100,11 @@ class User extends Authenticatable implements JWTSubject
         return $this->hasMany(Favorites::class);
     }
 
+    public function sharedRequests()
+    {
+        // Requests this user has sent or received
+        return $this->hasMany(SharedBookingRequest::class, 'sender_id')
+                    ->orWhere('receiver_id', $this->id);
+    }
+
 }

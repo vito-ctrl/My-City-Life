@@ -1,9 +1,7 @@
-
-export const getActivityLikes = async (id) => {
+export const getLikes = async (type, id) => {
     const token = localStorage.getItem('token');
-    // console.log(token);
     try {
-        const res = await fetch (`http://127.0.0.1:8000/api/like/activities/${id}`, {
+        const res = await fetch (`http://127.0.0.1:8000/api/like/${type}/${id}`, {
             method : 'GET',
             headers : { 'Authorization' : `Bearer ${token}`}
         })

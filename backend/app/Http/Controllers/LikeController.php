@@ -77,16 +77,16 @@ class LikeController extends Controller
         }
     }
 
-    public function getActivityLikes($id)
+    public function getLikes($type, $id)
     {
         try {
             $user = JWTAuth::parseToken()->authenticate();
 
-            $activity = Activity::findOrFail($id);
+            $model = $this->getModelInstance($type, $id);
 
-            $likesCount = $activity->likes()->count();
+            $likesCount = $model->likes()->count();
 
-            $isLiked = $activity->likes()
+            $isLiked = $model->likes()
                 ->where('user_id', $user->id)
                 ->exists();
 
@@ -97,7 +97,7 @@ class LikeController extends Controller
 
         } catch (ModelNotFoundException $e) {
             return response()->json([
-                'error' => 'Activity not found'
+                'error' => ucfirst(trim($type, 's')) . ' not found'
             ], 404);
 
         } catch (\Exception $e) {

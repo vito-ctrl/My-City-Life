@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import {
   FiMapPin, FiCalendar, FiArrowLeft, FiTag,
   FiShield, FiChevronRight, FiImage, FiSend, FiMessageSquare, FiClock
@@ -7,7 +7,7 @@ import {
 import { getComments, postComment } from '../../services/comment';
 
 const ActivitiesDetails = () => {
-  const { id } = useParams();
+  const { type, id } = useParams();
   const navigate = useNavigate();
   const [item, setItem] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -16,17 +16,24 @@ const ActivitiesDetails = () => {
   const [comment, setComment] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Booking Modal State
+  const [showBookingModal, setShowBookingModal] = useState(false);
+  const [bookingDate, setBookingDate] = useState('');
+  const [guests, setGuests] = useState(1);
+  const [bookingMsg, setBookingMsg] = useState('');
+
   useEffect(() => {
     const fetchDetails = async () => {
       try {
-        const res = await fetch(`http://127.0.0.1:8000/api/activities/${id}`);
+        setLoading(true);
+        const res = await fetch(`http://127.0.0.1:8000/api/${type}/${id}`);
         const json = await res.json();
         setItem(json.data);
         if (json.data?.image_urls?.length > 0) {
           setMainImage(json.data.image_urls[0]);
         }
-        const commentsData = await getComments(id);
-        setFetchcommentsComments(commentsData);
+        const commentsData = await getComments(type, id);
+        setFetchcommentsComments(commentsData || []);
       } catch (error) {
         console.error('Fetch error:', error);
       } finally {
@@ -34,7 +41,7 @@ const ActivitiesDetails = () => {
       }
     };
     fetchDetails();
-  }, [id]);
+  }, [type, id]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -42,16 +49,50 @@ const ActivitiesDetails = () => {
 
     setIsSubmitting(true);
     try {
-      await postComment(id, comment);
+      await postComment(type, id, comment);
       setComment('');
-      const updatedComments = await getComments(id);
-      setFetchcommentsComments(updatedComments);
+      const updatedComments = await getComments(type, id);
+      setFetchcommentsComments(updatedComments || []);
     } catch (err) {
       console.error(err);
     } finally {
       setIsSubmitting(false);
     }
   }
+
+  const handleBooking = async () => {
+    setBookingMsg('Processing booking...');
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        setBookingMsg('Please login first to book.');
+        return;
+      }
+      const res = await fetch('http://127.0.0.1:8000/api/bookings', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          activity_id: id,
+          booking_date: bookingDate,
+          number_of_guests: guests
+        })
+      });
+
+      const data = await res.json();
+      if (res.ok) {
+        setBookingMsg(`Booking successful! ${data.payment_status === 'unpaid' ? 'Go to TestBooking for payment.' : ''}`);
+        setTimeout(() => setShowBookingModal(false), 2000);
+      } else {
+        setBookingMsg(`Error: ${data.error || 'Failed to book'}`);
+      }
+    } catch (e) {
+      setBookingMsg('Error connecting to server.');
+    }
+  };
 
   if (loading) return (
     <div className="min-h-screen bg-zinc-950 flex items-center justify-center">
@@ -215,11 +256,64 @@ const ActivitiesDetails = () => {
             </div>
           </div>
 
-          <button className="flex items-center gap-3 bg-amber-500 hover:bg-amber-400 active:scale-95 text-black font-bold text-sm px-7 py-3.5 rounded-xl transition-all shadow-lg shadow-amber-500/20">
-            Confirm Booking
-            <FiChevronRight size={16} />
-          </button>
+          {type === 'activities' && (
+            <button 
+              onClick={() => setShowBookingModal(true)}
+              className="flex items-center gap-3 bg-amber-500 hover:bg-amber-400 active:scale-95 text-black font-bold text-sm px-7 py-3.5 rounded-xl transition-all shadow-lg shadow-amber-500/20"
+            >
+              Confirm Booking
+              <FiChevronRight size={16} />
+            </button>
+          )}
         </div>
+
+        {/* Booking Modal */}
+        {showBookingModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+            <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6 w-full max-w-md shadow-2xl">
+              <h3 className="text-xl font-bold text-white mb-4">Book Activity</h3>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-zinc-400 text-xs font-bold uppercase tracking-widest mb-1.5">Date & Time</label>
+                  <input 
+                    type="datetime-local" 
+                    className="w-full bg-zinc-800 border border-zinc-700 rounded-xl p-3 text-white focus:outline-none focus:border-amber-500 transition-colors"
+                    value={bookingDate}
+                    onChange={(e) => setBookingDate(e.target.value)}
+                  />
+                </div>
+                <div>
+                  <label className="block text-zinc-400 text-xs font-bold uppercase tracking-widest mb-1.5">Number of Guests</label>
+                  <input 
+                    type="number" 
+                    min="1"
+                    className="w-full bg-zinc-800 border border-zinc-700 rounded-xl p-3 text-white focus:outline-none focus:border-amber-500 transition-colors"
+                    value={guests}
+                    onChange={(e) => setGuests(parseInt(e.target.value))}
+                  />
+                </div>
+                {bookingMsg && (
+                  <p className="text-sm font-semibold text-amber-500 pt-2">{bookingMsg}</p>
+                )}
+                <div className="flex items-center justify-end gap-3 pt-4 border-t border-zinc-800">
+                  <button 
+                    onClick={() => setShowBookingModal(false)}
+                    className="px-5 py-2.5 text-sm font-bold text-zinc-400 hover:text-white transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button 
+                    onClick={handleBooking}
+                    disabled={!bookingDate}
+                    className="px-5 py-2.5 text-sm font-bold bg-amber-500 text-black rounded-xl hover:bg-amber-400 disabled:opacity-50 transition-all"
+                  >
+                    Submit Booking
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* ── Comment Section Rebuilt ── */}
         <section className="pt-8 space-y-8">

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import ActivityCard from '../components/ui/ActivityCard';
 import { FiSearch, FiChevronRight } from 'react-icons/fi';
 import Header from '../components/layout/Header';
+import Footer from '../components/layout/Footer';
 
 const Home = () => {
   const navigate = useNavigate();
@@ -10,6 +11,7 @@ const Home = () => {
   const [businesses, setBusinesses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [location, setLocation] = useState([]);
+  const user = localStorage.getItem('user');
 
   useEffect(() => {
     const fetchData = async () => {
@@ -23,7 +25,7 @@ const Home = () => {
         const buss = await busRes.json();
         
         setActivities(acts.data || []);
-        setBusinesses(buss.data || []);4
+        setBusinesses(buss.data || []);
       } catch (error) {
         console.error("Discovery error:", error);
       } finally {
@@ -127,7 +129,7 @@ const Home = () => {
                 <ActivityCard 
                   key={act.id} 
                   item={act} 
-                  type="activity" 
+                  type="activities" 
                   onClick={() => navigate(`/activities/${act.id}`)} 
                 />
               ))}
@@ -155,7 +157,7 @@ const Home = () => {
                 <ActivityCard 
                   key={act.id} 
                   item={act} 
-                  type="activity" 
+                  type="activities" 
                   onClick={() => navigate(`/activities/${act.id}`)} 
                 />
               ))}
@@ -177,7 +179,7 @@ const Home = () => {
               <ActivityCard 
                 key={biz.id} 
                 item={biz} 
-                type="business" 
+                type="businesses" 
                 onClick={() => navigate(`/businesses/${biz.id}`)} 
               />
             ))}
@@ -185,15 +187,20 @@ const Home = () => {
         </section>
 
         {/* CTA */}
-        <section className="py-32 px-8 text-center bg-gradient-to-b from-transparent to-orange-500/5">
-          <h2 className="text-6xl md:text-7xl font-black text-white italic tracking-tighter mb-8 leading-none">READY TO EXPLORE?</h2>
-          <button 
-            onClick={() => navigate('/register')}
-            className="bg-white text-black px-12 py-5 rounded-full font-black text-sm uppercase tracking-widest hover:bg-orange-500 hover:text-white transition-all shadow-xl"
-          >
-            Join MyCityLife Now
-          </button>
-        </section>
+        {!user ? 
+          <section className="py-32 px-8 text-center bg-gradient-to-b from-transparent to-orange-500/5">
+            <h2 className="text-6xl md:text-7xl font-black text-white italic tracking-tighter mb-8 leading-none">READY TO EXPLORE?</h2>
+            <button 
+              onClick={() => navigate('/register')}
+              className="bg-white text-black px-12 py-5 rounded-full font-black text-sm uppercase tracking-widest hover:bg-orange-500 hover:text-white transition-all shadow-xl"
+            >
+              Join MyCityLife Now
+            </button>
+          </section>
+        : (
+          // return 
+          <div></div>
+        )} 
       </div>
     </div>
   );

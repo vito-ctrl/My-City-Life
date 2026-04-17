@@ -1,6 +1,6 @@
-export const getComments = async (id) => {
+export const getComments = async (type, id) => {
     try {
-        const res = await fetch(`http://127.0.0.1:8000/api/comments/activities/${id}`);
+        const res = await fetch(`http://127.0.0.1:8000/api/comments/${type}/${id}`);
         const data = await res.json();
         
         if(res.ok) return data;
@@ -10,10 +10,10 @@ export const getComments = async (id) => {
     }
 }
 
-export const postComment = async (id, body) => {
+export const postComment = async (type, id, body) => {
     try {
         const token = localStorage.getItem('token'); 
-        const res = await fetch(`http://127.0.0.1:8000/api/comments/activities/${id}`, {
+        const res = await fetch(`http://127.0.0.1:8000/api/comments/${type}/${id}`, {
             method : 'POST',
             headers : {
                 'Content-Type' : 'application/json',

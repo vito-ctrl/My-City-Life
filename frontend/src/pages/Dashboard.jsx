@@ -33,7 +33,7 @@ const Dashboard = () => {
 
   if (loading) return <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center text-white">Loading...</div>;
 
-  const isOrganizer = genData?.user?.role === 'organizer';
+  const isOrganizer = genData?.user?.role === 'Organizer';
 
   return (
     <div className="min-h-screen bg-[#0a0a0a] text-white p-6 md:p-12">

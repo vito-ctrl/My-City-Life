@@ -73,6 +73,10 @@ class BookingController extends Controller
                     'payment_status'   => 'paid',
                     'stripe_charge_id' => $intent->latest_charge,
                 ]);
+
+                if ($booking->is_open_to_group) {
+                    $this->triggerSocialMatching($booking);
+                }
             }
         }
 
@@ -94,6 +98,7 @@ class BookingController extends Controller
                 'activity_id' => 'required|exists:activities,id',
                 'booking_date' => 'required|date',
                 'number_of_guests' => 'required|integer|min:1',
+                'is_open_to_group' => 'boolean',
             ]);
 
             $user = auth()->user();
@@ -107,10 +112,15 @@ class BookingController extends Controller
                 'activity_id' => $activity->id,
                 'booking_date' => $request->booking_date,
                 'number_of_guests' => $request->number_of_guests,
+                'is_open_to_group' => $request->boolean('is_open_to_group', false),
                 'amount' => $amount,
                 'payment_status' => $activity->is_free ? 'paid' : 'unpaid',
                 'status' => $activity->is_free ? 'confirmed' : 'pending',
             ]);
+
+            if ($booking->status === 'confirmed' && $booking->is_open_to_group) {
+                $this->triggerSocialMatching($booking);
+            }
 
             return response()->json($booking, 201);
         } catch (\Exception $e) {
@@ -214,5 +224,37 @@ public function cancel($id)
         'message' => 'Booking cancelled successfully.',
         'booking' => $booking->fresh(),
     ]);
+}
+
+private function triggerSocialMatching(Booking $newBooking)
+{
+    // Find other confirmed bookings for the same activity and same date 
+    // that are also open to meeting people
+    $matches = Booking::where('activity_id', $newBooking->activity_id)
+        ->where('user_id', '!=', $newBooking->user_id)
+        ->where('booking_date', $newBooking->booking_date)
+        ->where('is_open_to_group', true)
+        ->where('status', 'confirmed')
+        ->get();
+
+    foreach ($matches as $match) {
+        // Create a record in the shared_booking_requests table
+        // We use firstOrCreate to avoid duplicate requests for the same pair
+        \DB::table('shared_booking_requests')->updateOrInsert(
+            [
+                'activity_id' => $newBooking->activity_id,
+                'sender_id'   => $newBooking->user_id,
+                'receiver_id' => $match->user_id,
+            ],
+            [
+                'status'     => 'pending',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]
+        );
+
+        // TODO: Send a Notification to the $match->user_id 
+        // Example: "Vito is also going to Football Training! Want to chat?"
+    }
 }
 }

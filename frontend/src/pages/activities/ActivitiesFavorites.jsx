@@ -13,7 +13,7 @@ const ActivitiesFavorites = () => {
     useEffect(() => {
         const fetchFavoriteActivity = async () => {
             try {
-                const res = await fetch('http://127.0.0.1:8000/api/favorite/all', {
+                const res = await fetch('http://127.0.0.1:8000/api/favorites/activities/all', {
                     method: 'GET',
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
@@ -64,7 +64,7 @@ const ActivitiesFavorites = () => {
                                 <ActivityCard
                                     key={e.id} 
                                     item={e} 
-                                    type="activity" 
+                                    type="activities" 
                                     onClick={() => navigate(`/activities/${e.id}`)} 
                                 />
                             ))}

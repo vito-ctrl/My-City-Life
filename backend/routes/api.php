@@ -12,6 +12,7 @@ use App\Http\Controllers\CommentController;
 use App\Http\Controllers\Statistic\StatisticController;
 use App\Http\Controllers\FavoritesController;
 use App\Http\Controllers\Organizer\OrganizerController;
+use App\Http\Controllers\Social\SocialMatchController;
 
 // ── Auth (Public) ─────────────────────────────────────────────────────────────
 Route::post('/register', [AuthController::class, 'register']);
@@ -50,14 +51,14 @@ Route::middleware('auth:api')->group(function () {
     Route::put   ('/businesses/{id}',   [BusinessController::class, 'update']);
     Route::delete('/businesses/{id}',   [BusinessController::class, 'destroy']);
 
-    // Likes (Toggle Like/Unlike)
-    Route::get('/like/activities/{id}', [LikeController::class, 'getActivityLikes']);
-    Route::post('/like/{type}/{id}', [LikeController::class, 'toggle']);
+    // Likes
+    Route::post('/like/{type}/{id}',        [LikeController::class, 'toggle']);
+    Route::get('/like/{type}/{id}',         [LikeController::class, 'getLikes']);
 
-    // Likes (Toggle Favorite/Unfavorite)
-    Route::get('/favorite/activities/{id}', [FavoritesController::class, 'getActivityFavorites']);
-    Route::get('/favorite/all', [FavoritesController::class, 'getAllFavorites']);
-    Route::post('/favorite/{type}/{id}', [FavoritesController::class, 'toggle']);
+    // Favorites
+    Route::post('/favorite/{type}/{id}',    [FavoritesController::class, 'toggle']);
+    Route::get('/favorite/{type}/{id}',     [FavoritesController::class, 'getFavorites']);
+    Route::get('/favorites/{type}/all',     [FavoritesController::class, 'getUserFavorites']);
 
     // Comments
     Route::post  ('/comments/{type}/{id}',              [CommentController::class, 'store']);
@@ -84,6 +85,12 @@ Route::middleware('auth:api')->group(function () {
         Route::get('/bookings',                     [OrganizerController::class, 'bookings']);
         // Bookings for one specific activity
         Route::get('/activities/{id}/bookings',     [OrganizerController::class, 'activityBookings']);
+    });
+
+    Route::prefix('social')->group(function () {
+        Route::get('/pending', [SocialMatchController::class, 'pending']);
+        Route::post('/accept', [SocialMatchController::class, 'accept']);
+        Route::post('/decline', [SocialMatchController::class, 'decline']);
     });
 });
 

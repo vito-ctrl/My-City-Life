@@ -13,19 +13,20 @@ const Header = () => {
   useEffect(() => {
     const fetchUser = async () => {
       if (!token) {
-        setLoading(false); // No token, no need to wait
+        setLoading(false); 
         return;
-      }
-      try {
-        const res = await fetch('http://127.0.0.1:8000/api/profile', {
-          headers: { 'Authorization': `Bearer ${token}`}
-        });
-        const data = await res.json();
-        setUser(data.user);
-      } catch (err) {
-        console.error("Auth check failed", err);
-      } finally {
-        setLoading(false); // Stop loading regardless of success
+      }else{
+        try {
+          const res = await fetch('http://127.0.0.1:8000/api/profile', {
+            headers: { 'Authorization': `Bearer ${token}`}
+          });
+          const data = await res.json();
+          setUser(data.user);
+        } catch (err) {
+          console.error("Auth check failed", err);
+        } finally {
+          setLoading(false);
+        }
       }
     };
     fetchUser();
@@ -87,6 +88,14 @@ const Header = () => {
       <>
         <Link to='/' className={`flex items-center gap-2 text-[11px] font-black uppercase tracking-widest transition-colors ${isActive('/') ? 'text-orange-500' : 'text-white/60 hover:text-white'}`}>
           <FiCompass /> Explore
+        </Link>
+        <Link
+          to="/activity/manage"
+          className={`flex items-center gap-2 text-[11px] font-black uppercase tracking-widest transition-colors ${
+            isActive('/activity/manage') ? 'text-orange-500' : 'text-white/60 hover:text-white'
+          }`}
+        >
+          <FiList /> My Activities
         </Link>
       </>
     );
@@ -203,7 +212,7 @@ const Header = () => {
             >
               <div className="flex items-center gap-4">
                 <FiHeart size={20} className={isActive('/Favorites') ? 'text-white' : 'text-orange-500'} />
-                <span className="font-bold text-xs uppercase tracking-widest">favorit's</span>
+                <span className="font-bold text-xs uppercase tracking-widest">Favorites</span>
               </div>
             </Link>
             

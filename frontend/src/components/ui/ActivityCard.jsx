@@ -2,17 +2,15 @@ import React, { useEffect, useState } from 'react';
 import { FiMapPin, FiArrowRight, FiHeart } from 'react-icons/fi';
 import { IoHeartOutline, IoHeartSharp } from "react-icons/io5"; 
 import { AiOutlineLike } from "react-icons/ai";
-import { getActivityLikes } from '../../services/like'
-import { getActivityFavorites } from '../../services/favorits'
+import { getLikes } from '../../services/like';
+import { getFavorites } from '../../services/favorits';
 
 
-const ActivityCard = ({ item, type = 'activity', onClick }) => {
-  // let like;
-  // console.log("like : ", like);
-  const [likes, setLikes] = useState(0);
+const ActivityCard = ({ item, type , onClick }) => {
+  // const [likes, setLikes] = useState(0);
   const [liked, setLiked] = useState(false);
 
-  const [Favorites, setFavorites] = useState(0);
+  // const [Favorites, setFavorites] = useState(0);
   const [favorited, setFavorited] = useState(false);
 
 
@@ -21,36 +19,39 @@ const ActivityCard = ({ item, type = 'activity', onClick }) => {
   const image = item.image || "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&q=80&w=800";
   
   const isFree = item.is_free === 1 || item.is_free === true;
-  const badgeText = type === 'activity' ? (isFree ? 'FREE' : `${item.price} MAD`) : 'BUSINESS';
+  const badgeText = type === 'activities' ? (isFree ? 'FREE' : `${item.price} MAD`) : 'businesses';
   const badgeColor = isFree ? 'bg-green-500/90' : 'bg-orange-500/90';
 
   const token = localStorage.getItem('token');
   // console.log("token", token);
 
   useEffect(() => {
-    try{
-      const fetchLikes = async () => {
-        const data = await getActivityLikes(item.id);
-        setLiked(data.liked);
-      }
+    if (!token) return;
 
-      const fetchFavorites = async () => {
-        const data = await getActivityFavorites(item.id);
-        setFavorited(data.favorited);
-      }
+    try {
+      const fetchLikes = async () => {
+        const data = await getLikes(type, item.id);
+        if (data) setLiked(data.liked);
+      };
+
+      const fetchFavoritesData = async () => {
+        const data = await getFavorites(type, item.id);
+        if (data) setFavorited(data.favorited);
+      };
 
       fetchLikes();
-      fetchFavorites();
-    } catch ( err ) {
-      console.log("error in fetching likes : ", err );
+      fetchFavoritesData();
+    } catch (err) {
+      console.log("error in fetching interactions : ", err);
     }
-  }, [item.id]);
+  }, [item.id, type, token]);
 
   // Function to handle favorite click
   const handleFavorite = async(e) => {
     e.stopPropagation();
+    console.log(type);
     
-    await fetch(`http://127.0.0.1:8000/api/favorite/activities/${item.id}`, {
+    await fetch(`http://127.0.0.1:8000/api/favorite/${type}/${item.id}`, {
       method: 'POST',
       headers: {
         'Authorization' : `Bearer ${token}`,
@@ -63,9 +64,8 @@ const ActivityCard = ({ item, type = 'activity', onClick }) => {
   const handleLike = async(e) => {
     e.stopPropagation();
 
-    // console.log("hi", item);
     try{
-      const res = await fetch(`http://127.0.0.1:8000/api/like/activities/${item.id}`, {
+      await fetch(`http://127.0.0.1:8000/api/like/${type}/${item.id}`, {
         method: 'POST',
         headers: {
           'Authorization' : `Bearer ${token}`,

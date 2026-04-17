@@ -53,4 +53,8 @@ class Booking extends Model
     {
         return $this->belongsTo(Activity::class);
     }
+
+    public function scopeSocialReady($query) {
+        return $query->where('is_open_to_group', true)->where('status', 'confirmed');
+    }
 }

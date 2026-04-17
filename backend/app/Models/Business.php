@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\Favorites;
 
 class Business extends Model
 {
@@ -38,5 +39,9 @@ class Business extends Model
     {
         if (!$user) return false;
         return $this->likes()->where('user_id', $user->id)->exists();
+    }
+
+    public function favorites(){
+        return $this->hasMany(Favorites::class);
     }
 }
