@@ -68,8 +68,9 @@ const Home = () => {
         console.error("Location denied or unavailable : ", err);
       }
     };
-    getCityCountry()
+    // getCityCountry()
   }, []);
+
 
   return (
     <div className="bg-[#0a0a0a]">

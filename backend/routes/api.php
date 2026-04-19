@@ -14,6 +14,7 @@ use App\Http\Controllers\FavoritesController;
 use App\Http\Controllers\Organizer\OrganizerController;
 use App\Http\Controllers\Social\SocialMatchController;
 use App\Http\Controllers\Social\BookingChatController;
+use App\Http\Controllers\Business\BusinesReservationController;
 
 // ── Auth (Public) ─────────────────────────────────────────────────────────────
 Route::post('/register', [AuthController::class, 'register']);
@@ -77,6 +78,11 @@ Route::middleware('auth:api')->group(function () {
     Route::get('/statistics/general',           [StatisticController::class, 'general']);
     Route::get('/statistics/activities/{id}',   [StatisticController::class, 'activitySpecific']);
     Route::get('/statistics/businesses/{id}',   [StatisticController::class, 'businessSpecific']);
+    Route::get('/statistics/businesses/{id}',   [StatisticController::class, 'businessSpecific']);
+
+    // reservation 
+    Route::post('/reservation',   [BusinesReservationController::class, 'StoreReservation']);
+    Route::get('/reservation',   [BusinesReservationController::class, 'indexReservation']);
 
     // ── Organizer Dashboard ───────────────────────────────────────────────────
     Route::prefix('organizer')->group(function () {
@@ -86,6 +92,9 @@ Route::middleware('auth:api')->group(function () {
         Route::get('/bookings',                     [OrganizerController::class, 'bookings']);
         // Bookings for one specific activity
         Route::get('/activities/{id}/bookings',     [OrganizerController::class, 'activityBookings']);
+        // organizer making reservations 
+        Route::post('/reservation/{id}',     [BusinesReservationController::class, 'StoreReservationItem']);
+
     });
 
     Route::prefix('social')->group(function () {

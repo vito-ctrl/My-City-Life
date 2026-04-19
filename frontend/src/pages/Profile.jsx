@@ -8,6 +8,7 @@ import {
 
 import { GeneralStatistics } from '../services/statistic/general';
 import { ActivitieStatistics } from '../services/statistic/activities';
+import MatchNotification from './Match/MatchNotification';
 
 const Profile = () => {
   const { id } = useParams();
@@ -48,6 +49,7 @@ const Profile = () => {
     fetchData();
   }, [token]);
 
+  // console.log(userData);
   if (loading) return (
     <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center">
       <div className="text-orange-500 font-black animate-pulse tracking-[4px] uppercase text-xs">Loading Intelligence...</div>
@@ -264,6 +266,7 @@ const Profile = () => {
           </div>
         </div>
       </div>
+      <MatchNotification currentUserId={userData.id}/>
     </div>
   );
 };

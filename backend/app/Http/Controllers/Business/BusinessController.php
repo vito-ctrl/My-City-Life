@@ -17,7 +17,7 @@ class BusinessController extends Controller
             'description' => ['required', 'string'],
             'type'        => ['required', 'string', 'in:Bar,Cafe,Restaurant,Store,Event Space,Other'],
             'location'    => ['required', 'string'],
-            'image'       => ['nullable', 'string'],
+            'image'       => ['nullable', 'array', 'min:1'],
             'opening_hours'=> ['nullable', 'string'],
         ]);
 
@@ -57,7 +57,7 @@ class BusinessController extends Controller
         return response()->json(['data' => $business]);
     }
 
-     public function update(Request $request, $id)
+    public function update(Request $request, $id)
     {
         $validated = $request->validate([
             'name'        => ['sometimes', 'string', 'max:255'],

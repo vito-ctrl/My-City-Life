@@ -12,7 +12,6 @@ use App\Models\Activity;
 use Tymon\JWTAuth\Facades\JWTAuth;
 use Illuminate\Support\Facades\Storage;
 
-
 class ActivityController extends Controller
 {
     public function create(Request $request)

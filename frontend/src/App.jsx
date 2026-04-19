@@ -1,4 +1,5 @@
 import './App.css'
+import { useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 
 // ── Auth pages (always public) ─────────────────────────────────────────────
@@ -29,10 +30,43 @@ import TestBooking from './pages/TestBooking/TestBooking';
 import OrganizerDashboard from './pages/organizer/OrganizerDashboard';
 import OrganizerBookings from './pages/organizer/OrganizerBookings';
 
+// ── Social/Match pages ─────────────────────────────────────────────────────
+import MatchNotification from './pages/Match/MatchNotification';
+import ChatRoom from './pages/Match/ChatRoom';
+import { refreshEchoAuth } from './services/Echo/echo';
+import BusinessManager from './pages/organizer/BusinessManager';
+
 function App() {
+  const [user, setUser] = useState(() => {
+    const userStr = localStorage.getItem('user');
+    return userStr ? JSON.parse(userStr) : null;
+  });
+
+  useEffect(() => {
+    // Initial echo auth if user exists
+    if (user) refreshEchoAuth();
+  }, []);
+
+  useEffect(() => {
+    // Interval to detect storage changes (e.g. after login/logout in other components)
+    const interval = setInterval(() => {
+      const currentUserStr = localStorage.getItem('user');
+      const currentUser = currentUserStr ? JSON.parse(currentUserStr) : null;
+      
+      // Only update if the content has actually changed
+      if (JSON.stringify(currentUser) !== JSON.stringify(user)) {
+        setUser(currentUser);
+        if (currentUser) refreshEchoAuth();
+      }
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [user]);
+
   return (
     <>
       <BrowserRouter>
+        {user && <MatchNotification currentUserId={user.id} />}
         <Routes>
 
           {/* ── Public routes (no login required) ───────────────────────── */}
@@ -72,8 +106,14 @@ function App() {
             <OrganizerRoute><OrganizerBookings /></OrganizerRoute>
           } />
 
+          {/* ── Social routes ───────────────────────────────────────────────── */}
+          <Route path="/chat/:slug" element={
+            <ProtectedRoute><ChatRoom /></ProtectedRoute>
+          } />
+
           {/* Test route (development only) */}
           <Route path="/test-booking" element={<TestBooking />} />
+          <Route path="/BusinessManager" element={<BusinessManager />} />
 
         </Routes>
       </BrowserRouter>

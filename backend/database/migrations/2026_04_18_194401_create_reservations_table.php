@@ -11,15 +11,14 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('businesses', function (Blueprint $table) {
+        Schema::create('reservations', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained()->cascadeOnDelete();
-            $table->string('name');
-            $table->enum('type', ['Bar', 'Cafe', 'Restaurant', 'Store', 'Event Space', 'Other'])->default('Other');
-            $table->string('location');
-            $table->text('description');
-            $table->text('image')->nullable();
-            $table->string('opening_hours')->nullable();
+            $table->foreignId('reservable_item_id')->constrained()->cascadeOnDelete();
+            $table->dateTime('start_time');
+            $table->dateTime('end_time');
+            $table->enum('status', ['pending', 'confirmed', 'cancelled'])->default('pending');
+            $table->text('notes')->nullable();
             $table->timestamps();
         });
     }
@@ -29,6 +28,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('businesses');
+        Schema::dropIfExists('reservations');
     }
 };

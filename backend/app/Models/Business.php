@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use App\Models\Favorites;
+use App\Models\Booking;
 
 class Business extends Model
 {
@@ -43,5 +44,15 @@ class Business extends Model
 
     public function favorites(){
         return $this->hasMany(Favorites::class);
+    }
+
+    public function bookings()
+    {
+        return $this->hasMany(Booking::class);
+    }
+
+    public function reservableItems()
+    {
+        return $this->hasMany(ReservableItem::class);
     }
 }
