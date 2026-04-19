@@ -95,8 +95,8 @@ function App() {
           <Route path="/profile" element={
             <ProtectedRoute><Profile /></ProtectedRoute>
           } />
-          <Route path="/Favorites" element={
-            <ProtectedRoute><ActivitiesFavorites /></ProtectedRoute>
+          <Route path="/organizer/details/:id" element={
+            <ProtectedRoute><BusinessDetails /></ProtectedRoute>
           } />
 
           {/* ── Organizer-only routes (must be logged in as Organizer) ───── */}
@@ -107,12 +107,8 @@ function App() {
             <OrganizerRoute><OrganizerBookings /></OrganizerRoute>
           } />
 
-          <Route path="/organizer/Manage" element={
+          <Route path="/business/Manage" element={
             <OrganizerRoute><BusinessManager /></OrganizerRoute>
-          } />
-          
-          <Route path="/organizer/details/:id" element={
-            <OrganizerRoute><BusinessDetails /></OrganizerRoute>
           } />
 
           {/* ── Social routes ───────────────────────────────────────────────── */}

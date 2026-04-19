@@ -181,7 +181,7 @@ const Home = () => {
                 key={biz.id} 
                 item={biz} 
                 type="businesses" 
-                onClick={() => navigate(`/businesses/${biz.id}`)} 
+                onClick={() => navigate(`/organizer/details/${biz.id}`)} 
               />
             ))}
           </div>

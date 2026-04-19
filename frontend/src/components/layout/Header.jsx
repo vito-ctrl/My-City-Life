@@ -73,6 +73,14 @@ const Header = () => {
             <FiCalendar /> Bookings
           </Link>
           <Link
+            to="/business/manage"
+            className={`flex items-center gap-2 text-[11px] font-black uppercase tracking-widest transition-colors ${
+              isActive('/business/manage') ? 'text-orange-500' : 'text-white/60 hover:text-white'
+            }`}
+          >
+            <FiList /> My Businesses
+          </Link>
+          <Link
             to="/activity/manage"
             className={`flex items-center gap-2 text-[11px] font-black uppercase tracking-widest transition-colors ${
               isActive('/activity/manage') ? 'text-orange-500' : 'text-white/60 hover:text-white'

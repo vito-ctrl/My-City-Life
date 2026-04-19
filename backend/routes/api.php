@@ -32,6 +32,7 @@ Route::get('/activities',      [ActivityController::class, 'index']);
 Route::get('/activities/user/all',   [ActivityController::class, 'getUserActivities']);
 Route::get('/activities/{id}', [ActivityController::class, 'show']);
 
+Route::get('/businesses/all/',      [BusinessController::class, 'getAllOwnerBusinesses']);
 Route::get('/businesses',      [BusinessController::class, 'index']);
 Route::get('/businesses/{id}', [BusinessController::class, 'show']);
 
