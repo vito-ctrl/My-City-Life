@@ -83,6 +83,7 @@ Route::middleware('auth:api')->group(function () {
     // reservation 
     Route::post('/reservation',   [BusinesReservationController::class, 'StoreReservation']);
     Route::get('/reservation',   [BusinesReservationController::class, 'indexReservation']);
+    Route::get('/reservationItem/{id}',   [BusinesReservationController::class, 'GetReservationItems']);
 
     // ── Organizer Dashboard ───────────────────────────────────────────────────
     Route::prefix('organizer')->group(function () {

@@ -27,6 +27,12 @@ class BusinesReservationController extends Controller
         return response()->json(['message' => 'Item added', 'data' => $item], 201);
     }
 
+    public function GetReservationItems($id){
+        $business = Business::where('id', $id)->firstOrFail();
+        $businessItem = $business->reservableItems()->get();
+        return response()->json($businessItem);
+    }
+
     public function StoreReservation(Request $request)
     {
         $validated = $request->validate([
