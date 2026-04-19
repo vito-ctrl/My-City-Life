@@ -35,6 +35,7 @@ import MatchNotification from './pages/Match/MatchNotification';
 import ChatRoom from './pages/Match/ChatRoom';
 import { refreshEchoAuth } from './services/Echo/echo';
 import BusinessManager from './pages/organizer/BusinessManager';
+import BusinessDetails from './pages/organizer/BusinessDetails';
 
 function App() {
   const [user, setUser] = useState(() => {
@@ -106,6 +107,14 @@ function App() {
             <OrganizerRoute><OrganizerBookings /></OrganizerRoute>
           } />
 
+          <Route path="/organizer/Manage" element={
+            <OrganizerRoute><BusinessManager /></OrganizerRoute>
+          } />
+          
+          <Route path="/organizer/details/:id" element={
+            <OrganizerRoute><BusinessDetails /></OrganizerRoute>
+          } />
+
           {/* ── Social routes ───────────────────────────────────────────────── */}
           <Route path="/chat/:slug" element={
             <ProtectedRoute><ChatRoom /></ProtectedRoute>
@@ -113,7 +122,6 @@ function App() {
 
           {/* Test route (development only) */}
           <Route path="/test-booking" element={<TestBooking />} />
-          <Route path="/BusinessManager" element={<BusinessManager />} />
 
         </Routes>
       </BrowserRouter>
