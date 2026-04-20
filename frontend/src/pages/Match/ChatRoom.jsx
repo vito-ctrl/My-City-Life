@@ -49,12 +49,17 @@ const ChatRoom = () => {
 
     useEffect(() => {
         if (!slug) return;
-
+        refreshEchoAuth()
+        
         const channel = echo.private(`chat.${slug}`);
         
         channel.listen('ChatMessageSent', (event) => {
             console.log('New Message Received:', event);
-            setMessages(prev => [...prev, event]);
+            setMessages(prev => {
+                // Prevent duplicate bubbles if the message is already in state
+                if (prev.some(msg => msg.id === event.id)) return prev;
+                return [...prev, event];
+            });
         });
 
         return () => {
@@ -85,7 +90,7 @@ const ChatRoom = () => {
             const data = await response.json();
             console.log("sended message : ", data);
             if (response.ok) {
-                setMessages(prev => [...prev, data]);
+                setMessages(prev => [...prev, data[0]]); 
                 setNewMessage('');
             }
         } catch (error) {

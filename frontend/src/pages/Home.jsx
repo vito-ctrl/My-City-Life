@@ -23,6 +23,7 @@ const Home = () => {
         
         const acts = await actRes.json();
         const buss = await busRes.json();
+        console.log("buss", buss);
         
         setActivities(acts.data || []);
         setBusinesses(buss.data || []);
@@ -176,9 +177,9 @@ const Home = () => {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {businesses.slice(0, 3).map((biz) => (
+            {businesses.map((biz) => (
               <ActivityCard 
-                key={biz.id} 
+                key={biz.id}
                 item={biz} 
                 type="businesses" 
                 onClick={() => navigate(`/organizer/details/${biz.id}`)} 

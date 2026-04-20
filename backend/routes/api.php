@@ -83,9 +83,8 @@ Route::middleware('auth:api')->group(function () {
 
     // reservation 
     Route::post('/reservation',   [BusinesReservationController::class, 'StoreReservation']);
-    Route::get('/reservation',   [BusinesReservationController::class, 'indexReservation']);
     Route::get('/reservationItem/{id}',   [BusinesReservationController::class, 'GetReservationItems']);
-
+    
     // ── Organizer Dashboard ───────────────────────────────────────────────────
     Route::prefix('organizer')->group(function () {
         // Summary stats + recent bookings
@@ -96,6 +95,12 @@ Route::middleware('auth:api')->group(function () {
         Route::get('/activities/{id}/bookings',     [OrganizerController::class, 'activityBookings']);
         // organizer making reservations 
         Route::post('/reservation/{id}',     [BusinesReservationController::class, 'StoreReservationItem']);
+    
+        Route::put('/business/{businessId}/items/{itemId}', [BusinesReservationController::class, 'UpdateReservationItem']);  
+        
+        Route::get('/reservation/{business_id}',   [BusinesReservationController::class, 'GetBusinessReservations']);
+
+        Route::put('/reservation/{id}',   [BusinesReservationController::class, 'updateStatus']);
 
     });
 

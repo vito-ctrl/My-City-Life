@@ -27,6 +27,35 @@ class BusinesReservationController extends Controller
         return response()->json(['message' => 'Item added', 'data' => $item], 201);
     }
 
+public function UpdateReservationItem(Request $request, $businessId, $itemId)
+{
+    // 1. Authenticate the user
+    $user = JWTAuth::parseToken()->authenticate();
+
+    // 2. Verify the business exists and belongs to this user
+    $business = Business::where('id', $businessId)
+        ->where('user_id', $user->id)
+        ->firstOrFail();
+
+    // 3. Find the specific reservable item within that business
+    $item = $business->reservableItems()->findOrFail($itemId);
+
+    // 4. Validate the incoming data
+    // We use 'sometimes' so you can update only specific fields if you want
+    $validated = $request->validate([
+        'name'     => 'sometimes|required|string',
+        'capacity' => 'sometimes|required|integer|min:1',
+        'price'    => 'sometimes|nullable|numeric',
+    ]);
+
+    // 5. Perform the update
+    $item->update($validated);
+
+    return response()->json([
+        'message' => 'Item updated successfully',
+        'data' => $item
+    ], 200);
+}
     public function GetReservationItems($id){
         $business = Business::where('id', $id)->firstOrFail();
         $businessItem = $business->reservableItems()->get();
@@ -75,5 +104,40 @@ class BusinesReservationController extends Controller
             ->get();
 
         return response()->json($reservations);
+    }
+
+    public function GetBusinessReservations($businessId)
+    {
+        $user = JWTAuth::parseToken()->authenticate();
+
+        // 1. Verify that the business exists and belongs to the authenticated user
+        $business = Business::where('id', $businessId)
+            ->where('user_id', $user->id)
+            ->firstOrFail();
+
+        // 2. Fetch all reservations related to this business's items
+        $reservations = Reservation::whereHas('reservableItem', function ($query) use ($businessId) {
+            $query->where('business_id', $businessId);
+        })
+        ->with(['user', 'reservableItem']) // Get the customer info and item details
+        ->orderBy('created_at', 'desc')
+        ->get();
+
+        return response()->json($reservations);
+    }
+
+    public function updateStatus(Request $request, $id)
+    {
+        $request->validate(['status' => 'required|in:pending,confirmed,cancelled']);
+        
+        $user = JWTAuth::parseToken()->authenticate();
+        // Ensure the reservation belongs to a business owned by this user
+        $reservation = Reservation::whereHas('reservableItem.business', function($q) use ($user) {
+            $q->where('user_id', $user->id);
+        })->findOrFail($id);
+
+        $reservation->update(['status' => $request->status]);
+
+        return response()->json(['message' => 'Status updated', 'data' => $reservation]);
     }
 }

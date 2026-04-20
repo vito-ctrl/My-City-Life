@@ -23,9 +23,11 @@ const BusinessReservationModal = ({ isOpen, onClose, selectedItem }) => {
         setIsSubmitting(true);
         setMessage({ type: 'info', text: 'Securing your spot...' });
 
+        console.log(formData);
+
         try {
             const token = localStorage.getItem('token');
-            const res = await fetch('http://127.0.0.1:8000/api/business/reservations', {
+            const res = await fetch('http://127.0.0.1:8000/api/reservation', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

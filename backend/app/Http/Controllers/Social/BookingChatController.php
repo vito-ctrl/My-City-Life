@@ -86,8 +86,6 @@ class BookingChatController extends Controller
         // Broadcast the message globally
         broadcast(new ChatMessageSent($chat->slug, $message))->toOthers();
 
-        return response()->json([
-            $message,
-        ], 201);
+        return response()->json($message, 201);
     }
 }

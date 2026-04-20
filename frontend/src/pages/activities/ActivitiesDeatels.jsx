@@ -229,11 +229,12 @@ const ActivitiesDetails = () => {
                 <FiChevronRight size={16} />
               </button>
               
-              {/* Pass the id from useParams() here */}
-              <Paiment 
-                  isOpen={isPaymentOpen} 
-                  onClose={() => setIsPaymentOpen(false)} 
-                  activityId={id} 
+              <Paiment
+                isOpen={isPaymentOpen}
+                onClose={() => setIsPaymentOpen(false)}
+                activityId={id}
+                activityPrice={item.price ?? 0}
+                isFree={item.is_free}
               />
             </div>
           )}

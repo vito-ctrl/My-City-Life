@@ -120,15 +120,21 @@ class BusinessController extends Controller
     public function destroy($id)
     {
         $user = JWTAuth::parseToken()->authenticate();
-
+        
         if (!$user->isOrganizer()) {
             return response()->json(['error' => 'User is not an organizer'], 403);
-        }
-
+            }
+            
         $business = $user->businesses()->find($id);
-
+            
         if (!$business) {
             return response()->json(['error' => 'Business not found or unauthorized'], 404);
+        }
+
+        $images = json_decode($business->image, true) ?? [];
+
+        foreach ($images as $path) {
+            Storage::disk('public')->delete($path);
         }
 
         $business->delete();
