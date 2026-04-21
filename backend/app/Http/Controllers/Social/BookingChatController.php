@@ -11,39 +11,36 @@ use App\Events\ChatMessageSent;
 class BookingChatController extends Controller
 {
     /**
-     * Get all chat rooms the authenticated user is part of.
+     * GET /api/social/chats
+     * Returns ALL chats (both social + support) for the authenticated user.
      */
     public function index()
     {
         $user = auth()->user();
-        
-        $chats = BookingChat::whereHas('users', function ($query) use ($user) {
-                $query->where('user_id', $user->id);
-            })
+
+        $chats = BookingChat::whereHas('users', fn($q) => $q->where('user_id', $user->id))
             ->with(['activity:id,title', 'users:id,name,email'])
-            ->withCount(['messages as unread_count' => function ($query) use ($user) {
-                $query->where('sender_id', '!=', $user->id)->where('is_read', false);
-            }])
-            // get the latest message for the preview
-            ->with(['messages' => function ($query) {
-                $query->latest()->limit(1);
-            }])
+            ->withCount(['messages as unread_count' => fn($q) => $q
+                ->where('sender_id', '!=', $user->id)
+                ->where('is_read', false)
+            ])
+            ->with(['messages' => fn($q) => $q->latest()->limit(1)])
+            ->latest()
             ->get();
 
         return response()->json($chats);
     }
 
     /**
-     * Get a specific chat room and its messages.
+     * GET /api/social/chats/{slug}
+     * Returns a specific chat and its messages.
      */
     public function show($slug)
     {
         $user = auth()->user();
-        
+
         $chat = BookingChat::where('slug', $slug)
-            ->whereHas('users', function ($query) use ($user) {
-                $query->where('user_id', $user->id);
-            })
+            ->whereHas('users', fn($q) => $q->where('user_id', $user->id))
             ->with(['activity:id,title', 'users:id,name,email'])
             ->firstOrFail();
 
@@ -53,37 +50,38 @@ class BookingChatController extends Controller
             ->where('is_read', false)
             ->update(['is_read' => true]);
 
-        $messages = $chat->messages()->with('sender:id,name')->orderBy('created_at', 'asc')->get();
+        $messages = $chat->messages()
+            ->with('sender:id,name')
+            ->orderBy('created_at', 'asc')
+            ->get();
 
         return response()->json([
-            'chat' => $chat,
+            'chat'     => $chat,
             'messages' => $messages,
         ]);
     }
 
     /**
-     * Send a message to the chat room.
+     * POST /api/social/chats/{slug}/message
+     * Send a message to any chat room (social or support).
      */
     public function sendMessage(Request $request, $slug)
     {
         $request->validate(['message' => 'required|string|max:1000']);
-        
+
         $user = auth()->user();
-        
+
         $chat = BookingChat::where('slug', $slug)
-            ->whereHas('users', function ($query) use ($user) {
-                $query->where('user_id', $user->id);
-            })
+            ->whereHas('users', fn($q) => $q->where('user_id', $user->id))
             ->firstOrFail();
 
         $message = $chat->messages()->create([
             'sender_id' => $user->id,
-            'message' => $request->message,
+            'message'   => $request->message,
         ]);
 
         $message->load('sender:id,name');
 
-        // Broadcast the message globally
         broadcast(new ChatMessageSent($chat->slug, $message))->toOthers();
 
         return response()->json($message, 201);

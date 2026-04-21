@@ -12,8 +12,9 @@ use App\Http\Controllers\CommentController;
 use App\Http\Controllers\Statistic\StatisticController;
 use App\Http\Controllers\FavoritesController;
 use App\Http\Controllers\Organizer\OrganizerController;
-use App\Http\Controllers\Social\SocialMatchController;
 use App\Http\Controllers\Social\BookingChatController;
+use App\Http\Controllers\Social\SocialMatchController;
+use App\Http\Controllers\Social\SupportChatController;
 use App\Http\Controllers\Business\BusinesReservationController;
 
 // ── Auth (Public) ─────────────────────────────────────────────────────────────
@@ -79,7 +80,6 @@ Route::middleware('auth:api')->group(function () {
     Route::get('/statistics/general',           [StatisticController::class, 'general']);
     Route::get('/statistics/activities/{id}',   [StatisticController::class, 'activitySpecific']);
     Route::get('/statistics/businesses/{id}',   [StatisticController::class, 'businessSpecific']);
-    Route::get('/statistics/businesses/{id}',   [StatisticController::class, 'businessSpecific']);
 
     // reservation 
     Route::post('/reservation',   [BusinesReservationController::class, 'StoreReservation']);
@@ -105,14 +105,18 @@ Route::middleware('auth:api')->group(function () {
     });
 
     Route::prefix('social')->group(function () {
-        Route::get('/pending', [SocialMatchController::class, 'pending']);
-        Route::post('/accept', [SocialMatchController::class, 'accept']);
-        Route::post('/decline', [SocialMatchController::class, 'decline']);
-
-        // Chat routes
-        Route::get('/chats', [BookingChatController::class, 'index']);
-        Route::get('/chats/{slug}', [BookingChatController::class, 'show']);
-        Route::post('/chats/{slug}/message', [BookingChatController::class, 'sendMessage']);
+        // ── Social Match (user ↔ user) ────────────────────────────────────────
+        Route::get('/pending',          [SocialMatchController::class, 'pending']);
+        Route::post('/vote',            [SocialMatchController::class, 'vote']);
+    
+        // ── Chat Rooms (shared: works for both social + support) ──────────────
+        Route::get('/chats',                        [BookingChatController::class, 'index']);
+        Route::get('/chats/{slug}',                 [BookingChatController::class, 'show']);
+        Route::post('/chats/{slug}/message',        [BookingChatController::class, 'sendMessage']);
+    
+        // ── Support Chat (owner ↔ user) ───────────────────────────────────────
+        Route::post('/support/chats',          [SupportChatController::class, 'openChat']);
+        Route::get('/support/chats',           [SupportChatController::class, 'index']);
     });
 });
 

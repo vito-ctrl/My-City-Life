@@ -26,7 +26,8 @@ return new class extends Migration
         Schema::create('booking_chats', function (Blueprint $table) {
             $table->id();
             $table->foreignId('activity_id')->constrained()->cascadeOnDelete();
-            $table->string('slug')->unique(); // For frontend URLs
+            $table->string('slug')->unique();
+            $table->enum('type', ['social', 'support'])->default('social');
             $table->timestamps();
         });
 

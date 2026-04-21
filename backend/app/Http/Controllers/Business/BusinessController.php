@@ -71,10 +71,11 @@ class BusinessController extends Controller
     }
 
     public function getAllOwnerBusinesses(){
+        // return "hi";
         $user = JWTAuth::parseToken()->authenticate();
         
         // return $user->id;
-        $business = Business::with('user')->find($user->id)->all();
+        $business = $user->businesses()->with('user')->get();
         return response()->json($business);
     }
 

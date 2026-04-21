@@ -234,7 +234,6 @@ private function triggerSocialMatching(Booking $newBooking)
     // that are also open to meeting people
     $matches = Booking::where('activity_id', $newBooking->activity_id)
         ->where('user_id', '!=', $newBooking->user_id)
-        ->whereDate('booking_date', \Carbon\Carbon::parse($newBooking->booking_date)->toDateString())
         ->where('is_open_to_group', true)
         ->where('status', 'confirmed')
         ->get();

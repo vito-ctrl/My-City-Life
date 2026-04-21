@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { FiSend, FiArrowLeft, FiMoreVertical, FiClock, FiShield } from 'react-icons/fi';
-import { echo } from '../../services/Echo/echo';
+import { FiSend, FiArrowLeft, FiMoreVertical, FiClock, FiShield, FiUsers } from 'react-icons/fi';
+import { echo, refreshEchoAuth } from '../../services/Echo/echo'; // ✅ Fixed: added refreshEchoAuth
 
 const ChatRoom = () => {
     const { slug } = useParams();
@@ -12,33 +12,30 @@ const ChatRoom = () => {
     const [loading, setLoading] = useState(true);
     const [isSending, setIsSending] = useState(false);
     const messagesEndRef = useRef(null);
+
     const userStr = localStorage.getItem('user');
     const currentUser = userStr ? JSON.parse(userStr) : null;
 
     const scrollToBottom = () => {
-        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     };
 
     useEffect(() => {
         const fetchChatData = async () => {
             if (!slug) return;
-
             try {
                 const response = await fetch(`http://127.0.0.1:8000/api/social/chats/${slug}`, {
-                    headers: {
-                        'Authorization': `Bearer ${localStorage.getItem('token')}`
-                    }
+                    headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` },
                 });
                 const data = await response.json();
-                // console.log("chat res", data || "hi"); 
                 if (response.ok) {
                     setChat(data.chat);
                     setMessages(data.messages);
                 } else {
-                    navigate('/dashboard');
+                    navigate('/messages');
                 }
             } catch (error) {
-                console.error("Error fetching chat:", error);
+                console.error('Error fetching chat:', error);
             } finally {
                 setLoading(false);
             }
@@ -49,14 +46,12 @@ const ChatRoom = () => {
 
     useEffect(() => {
         if (!slug) return;
-        refreshEchoAuth()
-        
+        refreshEchoAuth(); // ✅ Fixed: now properly imported
+
         const channel = echo.private(`chat.${slug}`);
-        
+
         channel.listen('ChatMessageSent', (event) => {
-            console.log('New Message Received:', event);
             setMessages(prev => {
-                // Prevent duplicate bubbles if the message is already in state
                 if (prev.some(msg => msg.id === event.id)) return prev;
                 return [...prev, event];
             });
@@ -82,19 +77,18 @@ const ChatRoom = () => {
                 headers: {
                     'Authorization': `Bearer ${localStorage.getItem('token')}`,
                     'Content-Type': 'application/json',
-                    'Accept' : 'application/json'
+                    'Accept': 'application/json',
                 },
-                body: JSON.stringify({ message: newMessage })
+                body: JSON.stringify({ message: newMessage }),
             });
 
             const data = await response.json();
-            console.log("sended message : ", data);
             if (response.ok) {
-                setMessages(prev => [...prev, data[0]]); 
+                setMessages(prev => [...prev, data]);
                 setNewMessage('');
             }
         } catch (error) {
-            console.error("Error sending message:", error);
+            console.error('Error sending message:', error);
         } finally {
             setIsSending(false);
         }
@@ -111,26 +105,31 @@ const ChatRoom = () => {
         );
     }
 
-    const otherUser = chat?.users.find(u => u.id !== currentUser?.id);
+    const otherUser  = chat?.users.find(u => u.id !== currentUser?.id);
+    const isSupport  = chat?.type === 'support';
+    const TypeIcon   = isSupport ? FiShield : FiUsers;
+    const typeLabel  = isSupport ? 'Support Chat' : 'Social Match';
+    const typeColor  = isSupport ? 'text-emerald-400' : 'text-indigo-400';
 
     return (
         <div className="min-h-screen bg-zinc-950 flex flex-col h-screen overflow-hidden text-zinc-100 font-inter">
             {/* Header */}
             <header className="flex-shrink-0 bg-zinc-900/50 backdrop-blur-xl border-b border-zinc-800/80 px-6 py-4 flex items-center justify-between z-10">
                 <div className="flex items-center gap-4">
-                    <button 
-                        onClick={() => navigate(-1)}
+                    <button
+                        onClick={() => navigate('/messages')}
                         className="p-2.5 rounded-xl bg-zinc-800/50 text-zinc-400 hover:text-white hover:bg-zinc-800 transition-all border border-zinc-700/50"
                     >
                         <FiArrowLeft size={18} />
                     </button>
                     <div>
                         <div className="flex items-center gap-2">
-                            <h2 className="text-sm font-black uppercase tracking-wider">{otherUser?.name || 'Shared Interest'}</h2>
+                            <h2 className="text-sm font-black uppercase tracking-wider">{otherUser?.name || 'Chat'}</h2>
                             <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]"></span>
                         </div>
-                        <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest mt-0.5">
-                            Discussion: <span className="text-indigo-400">{chat?.activity?.title}</span>
+                        <p className={`text-[10px] font-bold uppercase tracking-widest mt-0.5 flex items-center gap-1 ${typeColor}`}>
+                            <TypeIcon size={10} />
+                            {typeLabel} · <span className="text-zinc-500">{chat?.activity?.title}</span>
                         </p>
                     </div>
                 </div>
@@ -147,7 +146,7 @@ const ChatRoom = () => {
                 </div>
             </header>
 
-            {/* Messages Area */}
+            {/* Messages */}
             <main className="flex-1 overflow-y-auto p-6 space-y-6 scrollbar-hide">
                 <div className="max-w-3xl mx-auto space-y-8">
                     {/* Safety Banner */}
@@ -156,9 +155,14 @@ const ChatRoom = () => {
                             <FiShield size={20} />
                         </div>
                         <div>
-                            <h4 className="text-xs font-black text-indigo-400 uppercase tracking-wider mb-1">Safety First</h4>
+                            <h4 className="text-xs font-black text-indigo-400 uppercase tracking-wider mb-1">
+                                {isSupport ? 'Support Channel' : 'Safety First'}
+                            </h4>
                             <p className="text-xs text-zinc-500 leading-relaxed font-medium">
-                                Coordination for "{chat?.activity?.title}". Remember to meet in public places and let someone know your plans.
+                                {isSupport
+                                    ? `Direct support channel for "${chat?.activity?.title}". The organizer is here to help.`
+                                    : `Coordination for "${chat?.activity?.title}". Remember to meet in public places and let someone know your plans.`
+                                }
                             </p>
                         </div>
                     </div>
@@ -166,7 +170,7 @@ const ChatRoom = () => {
                     {/* Chat Bubbles */}
                     {messages.map((msg, idx) => {
                         const isSystem = msg.sender_id === null;
-                        const isMe = msg.sender_id === currentUser?.id;
+                        const isMe     = msg.sender_id === currentUser?.id;
 
                         if (isSystem) {
                             return (
@@ -183,9 +187,14 @@ const ChatRoom = () => {
                         return (
                             <div key={`msg-${msg.id}-${idx}`} className={`flex ${isMe ? 'justify-end' : 'justify-start'} group animate-in fade-in slide-in-from-bottom-2`}>
                                 <div className={`flex flex-col max-w-[80%] md:max-w-[70%] ${isMe ? 'items-end' : 'items-start'}`}>
+                                    {!isMe && (
+                                        <span className="text-[9px] font-black text-zinc-600 uppercase tracking-widest mb-1 px-2">
+                                            {msg.sender?.name}
+                                        </span>
+                                    )}
                                     <div className={`p-4 rounded-3xl text-sm font-medium leading-relaxed ${
-                                        isMe 
-                                            ? 'bg-indigo-600 text-white rounded-tr-none shadow-xl shadow-indigo-600/10' 
+                                        isMe
+                                            ? 'bg-indigo-600 text-white rounded-tr-none shadow-xl shadow-indigo-600/10'
                                             : 'bg-zinc-900 text-zinc-300 rounded-tl-none border border-zinc-800'
                                     }`}>
                                         {msg.message}
@@ -202,18 +211,18 @@ const ChatRoom = () => {
                 </div>
             </main>
 
-            {/* Input Area */}
+            {/* Input */}
             <footer className="flex-shrink-0 p-6 bg-zinc-950/80 backdrop-blur-xl border-t border-zinc-900">
                 <div className="max-w-3xl mx-auto">
                     <form onSubmit={handleSendMessage} className="relative group">
-                        <input 
-                            type="text" 
+                        <input
+                            type="text"
                             className="w-full h-16 bg-zinc-900 border border-zinc-800 rounded-3xl pl-6 pr-20 text-sm font-medium focus:outline-none focus:border-indigo-500 transition-all placeholder:text-zinc-600"
-                            placeholder="Collaborate on a plan..."
+                            placeholder={isSupport ? 'Ask the organizer anything...' : 'Collaborate on a plan...'}
                             value={newMessage}
                             onChange={(e) => setNewMessage(e.target.value)}
                         />
-                        <button 
+                        <button
                             type="submit"
                             disabled={!newMessage.trim() || isSending}
                             className="absolute right-2 top-1/2 -translate-y-1/2 h-12 w-12 bg-indigo-600 hover:bg-indigo-500 disabled:bg-zinc-800 disabled:text-zinc-600 text-white rounded-2xl flex items-center justify-center transition-all shadow-lg shadow-indigo-600/20 active:scale-95"

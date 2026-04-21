@@ -2,7 +2,6 @@
 
 namespace App\Events;
 
-use Illuminate\Broadcasting\Channel;
 use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
@@ -19,12 +18,11 @@ class SocialMatchFound implements ShouldBroadcastNow
 
     public function __construct($receiverId, $activityName, $requestId)
     {
-        $this->receiverId = $receiverId;
+        $this->receiverId   = $receiverId;
         $this->activityName = $activityName;
-        $this->requestId = $requestId;
+        $this->requestId    = $requestId;
     }
 
-    // This ensures the notification goes ONLY to the matched user
     public function broadcastOn(): array
     {
         return [
@@ -32,13 +30,12 @@ class SocialMatchFound implements ShouldBroadcastNow
         ];
     }
 
-    // Data sent to the frontend
     public function broadcastWith(): array
     {
         return [
-            'message' => "Someone else is going to {$this->activityName}!",
+            'message'      => "Someone else is going to {$this->activityName}!",
             'activityName' => $this->activityName,
-            'requestId' => $this->requestId,
+            'voteId'       => $this->requestId, // FIX: was $this->voteId (undefined), now correctly uses $this->requestId
         ];
     }
 }
