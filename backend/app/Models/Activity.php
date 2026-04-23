@@ -16,7 +16,6 @@ class Activity extends Model
         'category',
         'location',
         'price',
-        'is_free',
         'image',
         'start_date',
         'end_date',

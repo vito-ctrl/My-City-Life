@@ -6,6 +6,8 @@ import {
   CalendarCheck,
   Users,
   TrendingUp,
+  Heart,
+  MessageSquare,
   Clock,
   ChevronRight,
   AlertCircle,
@@ -134,13 +136,13 @@ const pendingCount = breakdown.pending;
 
         {/* ── Stats Grid ── */}
         {loading ? (
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-10">
+          <div className="grid grid-cols-2 sm:grid-cols-5 gap-4 mb-10">
             {[1, 2, 3, 4].map(i => (
               <div key={i} className="bg-white/[0.02] border border-white/5 p-5 rounded-[24px] animate-pulse h-28" />
             ))}
           </div>
         ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-10">
+          <div className="grid grid-cols-2 sm:grid-cols-5 gap-4 mb-10">
             <StatCard
               icon={CalendarCheck}
               label="Activities"
@@ -163,10 +165,16 @@ const pendingCount = breakdown.pending;
               color="text-green-400"
             />
             <StatCard
-              icon={Building2}
-              label="Businesses"
-              value={stats.total_businesses ?? 0} // Now accurately reflects total businesses
-              color="text-purple-400"
+              icon={Heart}
+              label="Total Likes"
+              value={stats.total_likes ?? 0}
+              color="text-red-400"
+            />
+            <StatCard
+              icon={MessageSquare}
+              label="Comments"
+              value={stats.total_comments ?? 0}
+              color="text-blue-400"
             />
           </div>
         )}

@@ -133,8 +133,9 @@ const Register = () => {
                 {errors.name && <p className={errorClass}>{errors.name[0]}</p>}
               </div>
               <div>
-                <input type="number" name="age" placeholder="Age" min="13" max="70" required className={inputClass} onChange={handleChange} />
-                {errors.age && <p className={errorClass}>{errors.age[0]}</p>}
+                <input type="date" name="date_of_birth" required className={inputClass} onChange={handleChange} max={new Date().toISOString().split("T")[0]}
+                />
+                {errors.date_of_birth && (<p className={errorClass}>{errors.date_of_birth[0]}</p>)}
               </div>
             </div>
 

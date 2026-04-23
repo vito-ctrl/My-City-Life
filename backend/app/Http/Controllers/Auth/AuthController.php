@@ -21,17 +21,17 @@ class AuthController extends Controller
             'email' => ['required', 'email', 'max:255', 'unique:users,email'],
             'password' => ['required', 'string', 'min:6', 'confirmed'],
             'role' => ['required', 'in:user,admin,Organizer,Guide Local'],
-            'age' => ['required', 'integer', 'min:13', 'max:70'],
+            'date_of_birth' => ['required','date','before:-16 years','after:1900-01-01'],
             'city' => ['required', 'string', 'max:100'],
             'image' => ['nullable', 'image', 'mimes:jpg,jpeg,png', 'max:2048'],
 
-            // Business/Organizer
+            // Business
             'business_name' => ['required_if:role,Organizer', 'string'],
             'business_type' => ['required_if:role,Organizer', 'in:Bar,Cafe,Restaurant,Event Space,Store,Other'],
             'business_location' => ['required_if:role,Organizer', 'string'],
             'business_description' => ['required_if:role,Organizer', 'string'],
 
-            // User & Guide Local
+            // User 
             'interests' => ['required_if:role,user', 'array'],
         ]);
 
@@ -46,7 +46,7 @@ class AuthController extends Controller
             'name' => $request->name,
             'email' => $request->email,
             'role' => $request->role,
-            'age' => $request->age,
+            'date_of_birth' => $request->date_of_birth,
             'city' => $request->city,
             'image' => $imagePath,
             'password' => Hash::make($request->password),

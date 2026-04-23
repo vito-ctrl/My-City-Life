@@ -31,12 +31,16 @@ class OrganizerController extends Controller
         // Count all bookings for those activities
         $totalBookings = Booking::whereIn('activity_id', $activityIds)->count();
 
-        // Sum up revenue from confirmed + paid bookings only
+        // Sum up revenue
         $totalRevenue = Booking::whereIn('activity_id', $activityIds)
             ->where('payment_status', 'paid')
             ->sum('amount');
 
-        // The 5 most recent bookings so the organizer can see at a glance
+        // Count social engagement
+        $totalLikes = \App\Models\Like::whereIn('activity_id', $activityIds)->count();
+        $totalComments = \App\Models\Comment::whereIn('activity_id', $activityIds)->count();
+
+        // The 5 most recent bookings
         $recentBookings = Booking::with(['activity', 'user'])
             ->whereIn('activity_id', $activityIds)
             ->latest()
@@ -48,6 +52,8 @@ class OrganizerController extends Controller
                 'total_activities' => $totalActivities,
                 'total_bookings'   => $totalBookings,
                 'total_revenue'    => (float) $totalRevenue,
+                'total_likes'      => $totalLikes,
+                'total_comments'   => $totalComments,
             ],
             'recent_bookings' => $recentBookings,
         ]);

@@ -1,30 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { loadStripe } from '@stripe/stripe-js';
-import {
-  Elements,
-  CardNumberElement,
-  CardExpiryElement,
-  CardCvcElement,
-  useStripe,
-  useElements,
-} from '@stripe/react-stripe-js';
-import { FiShield, FiX, FiCheck, FiLock, FiUsers, FiCalendar, FiCreditCard } from 'react-icons/fi';
+import { FiCheck, FiUsers, FiCalendar } from 'react-icons/fi';
 
-
-// Load Stripe outside component to avoid re-instantiation on renders
-const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
-
-// ── Stripe element shared style ───────────────────────────────────────────────
-const STRIPE_STYLE = {
-  base: {
-    color: '#e4e4e7',
-    fontFamily: "'Inter', sans-serif",
-    fontSize: '14px',
-    fontSmoothing: 'antialiased',
-    '::placeholder': { color: '#52525b' },
-  },
-  invalid: { color: '#f87171' },
-};
 
 // ── Step 1: Booking form ──────────────────────────────────────────────────────
 const BookingForm = ({ activityId, activityPrice, isFree, onBookingCreated, onClose }) => {
@@ -44,7 +20,7 @@ const BookingForm = ({ activityId, activityPrice, isFree, onBookingCreated, onCl
     try {
       const token = localStorage.getItem('token');
       if (!token) { setError('You must be logged in to book.'); return; }
-
+      // console.log(activityId); 
       const res  = await fetch(`http://127.0.0.1:8000/api/bookings`, {
         method: 'POST',
         headers: {
@@ -179,3 +155,4 @@ const BookingForm = ({ activityId, activityPrice, isFree, onBookingCreated, onCl
   );
 };
 
+export default BookingForm;

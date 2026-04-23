@@ -31,7 +31,6 @@ class PasswordResetController extends Controller
 
         $resetLink = "http://localhost:5173/reset-password?token=$token&email=".$request->email;
 
-        // Send email (simple version)
         Mail::raw("Reset your password: $resetLink", function ($message) use ($request) {
             $message->to($request->email)
                     ->subject('Password Reset');
@@ -65,7 +64,6 @@ class PasswordResetController extends Controller
         $user->password = Hash::make($request->password);
         $user->save();
 
-        // delete token after use
         DB::table('password_reset_tokens')->where('email', $request->email)->delete();
 
         return response()->json([

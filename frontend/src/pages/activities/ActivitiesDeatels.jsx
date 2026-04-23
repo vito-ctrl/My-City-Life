@@ -1,36 +1,45 @@
 import React, { useEffect, useState } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import {
-  FiMapPin, FiCalendar, FiArrowLeft, FiTag,
+  FiMapPin, FiCalendar, FiArrowLeft,
   FiShield, FiChevronRight, FiImage, FiSend, FiMessageSquare, FiClock
 } from 'react-icons/fi';
+import { AiOutlineLike } from 'react-icons/ai';
+import { IoHeartSharp, IoHeartOutline } from 'react-icons/io5';
 import { getComments, postComment } from '../../services/comment';
-import Paiment from '../../components/layout/Paiment';
+import { Paiment } from '../../components/layout/paiment/Paiment';
+import BookingToastNotification, { showBookingToast } from '../../components/notifications/BookingNotification';
 
 const ActivitiesDetails = () => {
   const { type, id } = useParams();
-  const navigate = useNavigate();
-  const [item, setItem] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [mainImage, setMainImage] = useState('');
-  const [fetchcomments, setFetchcommentsComments] = useState([]);
-  const [comment, setComment] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const navigate     = useNavigate();
 
-  const [isPaymentOpen, setIsPaymentOpen] = useState(false);
+  const [item,            setItem]            = useState(null);
+  const [loading,         setLoading]         = useState(true);
+  const [mainImage,       setMainImage]       = useState('');
+  const [fetchcomments,   setFetchcomments]   = useState([]);
+  const [comment,         setComment]         = useState('');
+  const [isSubmitting,    setIsSubmitting]     = useState(false);
+
+  const token = localStorage.getItem('token');
+
+  const [liked,       setLiked]       = useState(false);
+  const [likesCount,  setLikesCount]  = useState(0);
+  const [favorited,   setFavorited]   = useState(false);
+
+  const [isPaymentOpen,   setIsPaymentOpen]   = useState(false);
+  const [payingBooking,   setPayingBooking]   = useState(null);
 
   useEffect(() => {
     const fetchDetails = async () => {
       try {
         setLoading(true);
-        const res = await fetch(`http://127.0.0.1:8000/api/${type}/${id}`);
+        const res  = await fetch(`http://127.0.0.1:8000/api/${type}/${id}`);
         const json = await res.json();
         setItem(json.data);
-        if (json.data?.image_urls?.length > 0) {
-          setMainImage(json.data.image_urls[0]);
-        }
+        if (json.data?.image_urls?.length > 0) setMainImage(json.data.image_urls[0]);
         const commentsData = await getComments(type, id);
-        setFetchcommentsComments(commentsData || []);
+        setFetchcomments(commentsData || []);
       } catch (error) {
         console.error('Fetch error:', error);
       } finally {
@@ -40,22 +49,107 @@ const ActivitiesDetails = () => {
     fetchDetails();
   }, [type, id]);
 
+  useEffect(() => {
+    if (type !== 'activities') return; 
+
+    const seenKeys = new Set();
+
+    const poll = async () => {
+      const token = localStorage.getItem('token');
+      if (!token) return;
+
+      try {
+        const res  = await fetch('http://127.0.0.1:8000/api/bookings', {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        const data = await res.json();
+        if (!Array.isArray(data)) return;
+
+        data
+          .filter(b => String(b.activity_id) === String(id))
+          .forEach(booking => {
+            const key = `${booking.id}:${booking.status}:${booking.payment_status}`;
+            if (seenKeys.has(key)) return;
+            seenKeys.add(key);
+
+            if (booking.status === 'confirmed' && booking.payment_status === 'unpaid') {
+              showBookingToast({
+                type:    'confirmed_awaiting_payment',
+                message: `${item?.title ?? 'Your activity'} · ${Number(booking.amount).toFixed(2)} MAD`,
+                booking,
+                onPayNow: (b) => {
+                  setPayingBooking(b);
+                  setIsPaymentOpen(true);
+                },
+              });
+            }
+          });
+      } catch (err) {
+        console.error('Polling error:', err);
+      }
+    };
+
+    poll();
+    const interval = setInterval(poll, 15_000);
+    return () => clearInterval(interval);
+  }, [type, id, item?.title]);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!comment.trim() || isSubmitting) return;
-
     setIsSubmitting(true);
     try {
       await postComment(type, id, comment);
       setComment('');
-      const updatedComments = await getComments(type, id);
-      setFetchcommentsComments(updatedComments || []);
+      const updated = await getComments(type, id);
+      setFetchcomments(updated || []);
     } catch (err) {
       console.error(err);
     } finally {
       setIsSubmitting(false);
     }
-  }
+  };
+
+  const handleLike = async () => {
+    if (!token) return;
+    try {
+      const res = await fetch(`http://127.0.0.1:8000/api/${type}/${id}/like`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (res.ok) {
+        setLiked(prev => !prev);
+        setLikesCount(prev => liked ? prev - 1 : prev + 1);
+      }
+    } catch (err) {
+      console.error('Like error:', err);
+    }
+  };
+
+  const handleFavorite = async () => {
+    if (!token) return;
+    try {
+      const res = await fetch(`http://127.0.0.1:8000/api/${type}/${id}/favorite`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (res.ok) {
+        setFavorited(prev => !prev);
+      }
+    } catch (err) {
+      console.error('Favorite error:', err);
+    }
+  };
+
+  const openNewBooking = () => {
+    setPayingBooking(null);   
+    setIsPaymentOpen(true);
+  };
+
+  const closePayment = () => {
+    setIsPaymentOpen(false);
+    setPayingBooking(null);
+  };
 
   if (loading) return (
     <div className="min-h-screen bg-zinc-950 flex items-center justify-center">
@@ -88,7 +182,8 @@ const ActivitiesDetails = () => {
   return (
     <div className="min-h-screen bg-zinc-950 text-zinc-100" style={{ fontFamily: "'Inter', sans-serif" }}>
 
-      {/* Top Nav */}
+      <BookingToastNotification />
+
       <header className="sticky top-0 z-40 bg-zinc-950/80 backdrop-blur border-b border-zinc-800/60 px-6 py-4 flex items-center gap-4">
         <button
           onClick={() => navigate(-1)}
@@ -99,21 +194,14 @@ const ActivitiesDetails = () => {
           </span>
           Back
         </button>
-        {/* <span className="text-zinc-700">·</span>
-        <span className="text-zinc-500 text-sm truncate">{item.title}</span> */}
       </header>
 
       <div className="max-w-5xl mx-auto px-4 sm:px-6 py-10 space-y-10">
 
-        {/* ── Hero Image + Gallery ── */}
         <section className="space-y-3">
           <div className="w-full rounded-2xl overflow-hidden bg-zinc-900 border border-zinc-800" style={{ height: '360px' }}>
             {mainImage ? (
-              <img
-                src={mainImage}
-                alt={item.title}
-                className="w-full h-full object-cover transition-opacity duration-500"
-              />
+              <img src={mainImage} alt={item.title} className="w-full h-full object-cover transition-opacity duration-500" />
             ) : (
               <div className="w-full h-full flex items-center justify-center text-zinc-700">
                 <FiImage size={40} />
@@ -128,9 +216,7 @@ const ActivitiesDetails = () => {
                   key={i}
                   onClick={() => setMainImage(url)}
                   className={`flex-shrink-0 w-16 h-16 rounded-lg overflow-hidden border-2 transition-all duration-200 ${
-                    mainImage === url
-                      ? 'border-amber-500 opacity-100'
-                      : 'border-transparent opacity-50 hover:opacity-80'
+                    mainImage === url ? 'border-amber-500 opacity-100' : 'border-transparent opacity-50 hover:opacity-80'
                   }`}
                 >
                   <img src={url} alt="" className="w-full h-full object-cover" />
@@ -140,7 +226,6 @@ const ActivitiesDetails = () => {
           )}
         </section>
 
-        {/* ── Title & Meta ── */}
         <section className="space-y-4">
           <div className="flex flex-wrap items-center gap-2">
             <span className="text-xs font-semibold uppercase tracking-widest px-3 py-1 rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/20">
@@ -173,31 +258,23 @@ const ActivitiesDetails = () => {
 
         <div className="border-t border-zinc-800" />
 
-        {/* ── Description + Info Grid ── */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2 space-y-4">
             <h2 className="text-xs font-semibold uppercase tracking-widest text-zinc-500">About this activity</h2>
-            <p className="text-zinc-300 leading-relaxed text-base">
-              {item.description}
-            </p>
+            <p className="text-zinc-300 leading-relaxed text-base">{item.description}</p>
           </div>
 
           <div className="space-y-4">
             <div className="rounded-xl bg-zinc-900 border border-zinc-800 p-5 space-y-2">
               <div className="flex items-center gap-2 text-zinc-500 text-xs font-semibold uppercase tracking-widest">
-                <FiShield size={12} className="text-amber-500" />
-                Requirements
+                <FiShield size={12} className="text-amber-500" /> Requirements
               </div>
-              <p className="text-sm text-zinc-300">
-                {item.requirements || 'No specific requirements'}
-              </p>
+              <p className="text-sm text-zinc-300">{item.requirements || 'No specific requirements'}</p>
             </div>
 
             {item.duration && (
               <div className="rounded-xl bg-zinc-900 border border-zinc-800 p-5 space-y-2">
-                <div className="flex items-center gap-2 text-zinc-500 text-xs font-semibold uppercase tracking-widest">
-                  Duration
-                </div>
+                <div className="text-zinc-500 text-xs font-semibold uppercase tracking-widest">Duration</div>
                 <p className="text-sm text-zinc-300">{item.duration}</p>
               </div>
             )}
@@ -219,28 +296,42 @@ const ActivitiesDetails = () => {
             </div>
           </div>
 
-          {type === 'activities' && (
-            <div className="mt-8"> {/* Removed min-h-screen which breaks the layout here */}
-              <button 
-                onClick={() => setIsPaymentOpen(true)}
+          <div className="flex items-center gap-4">
+            {token && (
+              <>
+                <button
+                  onClick={handleLike}
+                  className={`flex items-center gap-2 px-5 py-3 rounded-xl border transition-all ${
+                    liked ? 'bg-amber-500/10 border-amber-500/50 text-amber-500' : 'bg-transparent border-white/10 text-white/40 hover:border-white/30'
+                  }`}
+                >
+                  <AiOutlineLike size={18} className={liked ? 'fill-amber-500' : ''} />
+                  <span className="text-xs font-bold">{likesCount}</span>
+                </button>
+                <button
+                  onClick={handleFavorite}
+                  className={`w-12 h-12 flex items-center justify-center rounded-xl border transition-all ${
+                    favorited ? 'bg-orange-500 border-orange-500 text-white' : 'bg-transparent border-white/10 text-white/40 hover:border-white/30'
+                  }`}
+                >
+                  {favorited ? <IoHeartSharp size={20} /> : <IoHeartOutline size={20} />}
+                </button>
+              </>
+            )}
+
+            {type === 'activities' && (
+              <button
+                onClick={openNewBooking}
                 className="flex items-center gap-3 bg-amber-500 hover:bg-amber-400 active:scale-95 text-black font-bold text-sm px-7 py-3.5 rounded-xl transition-all shadow-lg shadow-amber-500/20"
               >
                 Confirm Booking
                 <FiChevronRight size={16} />
               </button>
-              
-              <Paiment
-                isOpen={isPaymentOpen}
-                onClose={() => setIsPaymentOpen(false)}
-                activityId={id}
-                activityPrice={item.price ?? 0}
-                isFree={item.is_free}
-              />
-            </div>
-          )}
+            )}
+          </div>
         </div>
 
-        {/* ── Comment Section Rebuilt ── */}
+        {/* ── Comments ── */}
         <section className="pt-8 space-y-8">
           <div className="flex items-center justify-between border-b border-zinc-800 pb-4">
             <div className="flex items-center gap-3">
@@ -252,17 +343,15 @@ const ActivitiesDetails = () => {
             </span>
           </div>
 
-          {/* New Comment Form */}
           <form onSubmit={handleSubmit} className="relative group">
             <input
               type="text"
-              name="comment"
               value={comment}
               onChange={(e) => setComment(e.target.value)}
               placeholder="Write a comment..."
               className="w-full h-14 pl-5 pr-16 bg-zinc-900 border border-zinc-800 rounded-2xl text-sm text-white placeholder:text-zinc-600 placeholder:italic focus:outline-none focus:border-amber-500/50 transition-all"
             />
-            <button 
+            <button
               disabled={isSubmitting}
               className="absolute right-2 top-1/2 -translate-y-1/2 p-2.5 bg-amber-500 text-black rounded-xl hover:bg-white transition-all disabled:opacity-50"
             >
@@ -270,17 +359,15 @@ const ActivitiesDetails = () => {
             </button>
           </form>
 
-          {/* Comments List */}
           <div className="space-y-4">
             {fetchcomments.map((c) => (
               <div key={c.id} className="p-5 bg-zinc-900/40 border border-zinc-800/50 rounded-2xl flex gap-4 hover:border-zinc-700 transition-all">
                 <div className="flex-shrink-0">
                   <div className="w-10 h-10 rounded-xl bg-zinc-800 flex items-center justify-center text-zinc-400 font-bold border border-white/5 overflow-hidden">
-                    {c.user?.image ? (
-                      <img src={c.user.image} alt="" className="w-full h-full object-cover" />
-                    ) : (
-                      c.user?.name?.charAt(0).toUpperCase()
-                    )}
+                    {c.user?.image
+                      ? <img src={c.user.image} alt="" className="w-full h-full object-cover" />
+                      : c.user?.name?.charAt(0).toUpperCase()
+                    }
                   </div>
                 </div>
                 <div className="flex-1 space-y-1">
@@ -291,22 +378,31 @@ const ActivitiesDetails = () => {
                       {new Date(c.created_at).toLocaleDateString()}
                     </span>
                   </div>
-                  <p className="text-zinc-400 text-sm leading-relaxed italic">
-                    {c.body}
-                  </p>
+                  <p className="text-zinc-400 text-sm leading-relaxed italic">{c.body}</p>
                 </div>
               </div>
             ))}
 
             {fetchcomments.length === 0 && (
               <div className="py-12 text-center">
-                <p className="text-zinc-700 text-xs font-bold uppercase tracking-widest italic">No messages yet. Start the conversation.</p>
+                <p className="text-zinc-700 text-xs font-bold uppercase tracking-widest italic">
+                  No messages yet. Start the conversation.
+                </p>
               </div>
             )}
           </div>
         </section>
 
       </div>
+
+      <Paiment
+        isOpen={isPaymentOpen}
+        onClose={closePayment}
+        activityId={id}
+        activityPrice={item.price ?? 0}
+        isFree={item.is_free}
+        preConfirmedBooking={payingBooking}
+      />
     </div>
   );
 };

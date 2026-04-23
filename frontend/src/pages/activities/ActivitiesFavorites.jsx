@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom'; // Added for navigation support
+import { useNavigate } from 'react-router-dom';
 import ActivityCard from '../../components/ui/ActivityCard';
 import Header from '../../components/layout/Header';
-import { FiHeart, FiArrowLeft } from 'react-icons/fi'; // Icons for better UI
+import { FiHeart, FiArrowLeft } from 'react-icons/fi'; 
 
 const ActivitiesFavorites = () => {
     const navigate = useNavigate();
-    const [activities, setActivities] = useState([]); // Renamed for clarity
+    const [activities, setActivities] = useState([]); 
     const [loading, setLoading] = useState(true);
     const token = localStorage.getItem('token');
 
@@ -70,7 +70,6 @@ const ActivitiesFavorites = () => {
                             ))}
                         </div>
                     ) : (
-                        /* Enhanced Empty State */
                         <div className="flex flex-col items-center justify-center py-24 text-center space-y-6">
                             <div className="w-24 h-24 bg-white/5 rounded-full flex items-center justify-center border border-white/10">
                                 <FiHeart size={40} className="text-white/10" />

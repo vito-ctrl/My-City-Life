@@ -22,7 +22,7 @@ class ActivityController extends Controller
             'category'     => ['required', 'string'],
             'location'     => ['required', 'string'],
             'price'        => ['nullable', 'numeric', 'min:0'],
-            'is_free'      => ['required'],
+            // 'is_free'      => ['required'],
             'images'       => ['nullable', 'array', 'min:1'],
             'images.*'     => ['image', 'mimes:jpeg,png,jpg', 'max:2048'],
             'start_date'   => ['nullable', 'date'],

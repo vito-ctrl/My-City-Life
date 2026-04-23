@@ -1,3 +1,4 @@
+import NotificationCenter from './NotificationCenter';
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { FiUser, FiLogOut, FiCompass, FiX, FiHeart, FiCalendar, FiList, FiGrid } from 'react-icons/fi';
@@ -116,13 +117,21 @@ const Header = () => {
           <FiList /> My Activities
         </Link>
         <Link
+            to="/organizer/bookings"
+            className={`flex items-center gap-2 text-[11px] font-black uppercase tracking-widest transition-colors ${
+              isActive('/organizer/bookings') ? 'text-orange-500' : 'text-white/60 hover:text-white'
+            }`}
+          >
+            <FiList /> Booking
+          </Link>
+        <Link
             to="/messages"
             className={`flex items-center gap-2 text-[11px] font-black uppercase tracking-widest transition-colors ${
               isActive('/messages') ? 'text-orange-500' : 'text-white/60 hover:text-white'
             }`}
           >
-            <FiList /> Chat
-          </Link>
+          <FiList /> Chat
+        </Link>
       </>
     );
   };
@@ -149,6 +158,8 @@ const Header = () => {
 
           {/* User Trigger - Opens Sidebar */}
           <div className="flex items-center gap-4">
+            {user && <NotificationCenter />}
+            
             {user ? (
               <button 
                 onClick={() => setIsSidebarOpen(true)}

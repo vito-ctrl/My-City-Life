@@ -35,7 +35,7 @@ class SocialMatchFound implements ShouldBroadcastNow
         return [
             'message'      => "Someone else is going to {$this->activityName}!",
             'activityName' => $this->activityName,
-            'voteId'       => $this->requestId, // FIX: was $this->voteId (undefined), now correctly uses $this->requestId
+            'voteId'       => $this->requestId,
         ];
     }
 }

@@ -2,15 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { FiPlus, FiMapPin, FiTag, FiDollarSign, FiCalendar, FiImage, FiType, FiAlignLeft, FiSave, FiX } from 'react-icons/fi';
 
 const ActivityForm = ({ initialData, onSuccess, isPopup }) => {
-    const [images, setImages] = useState([]); // Real file objects
-    const [previews, setPreviews] = useState([]); // For UI display
+    const [images, setImages] = useState([]); 
+    const [previews, setPreviews] = useState([]);
     const [form, setForm] = useState({
         title: "",
         description: "",
         category: "",
         location: "",
         price: 0,
-        is_free: true,
         start_date: '',
         end_date: ''
     });
@@ -57,9 +56,7 @@ const ActivityForm = ({ initialData, onSuccess, isPopup }) => {
         
         const formData = new FormData();
         
-        // Append text fields
         Object.keys(form).forEach(key => {
-            // Convert boolean to 1/0 for Laravel validation compatibility
             if (key === 'is_free') {
                 formData.append(key, form[key] ? '1' : '0');
             } else if (key !== 'image' && key !== 'image_urls') {
@@ -67,7 +64,6 @@ const ActivityForm = ({ initialData, onSuccess, isPopup }) => {
             }
         });
 
-        // Append multiple images with the key 'images[]'
         images.forEach((file) => {
             formData.append('images[]', file);
         });
@@ -76,7 +72,6 @@ const ActivityForm = ({ initialData, onSuccess, isPopup }) => {
             ? `http://127.0.0.1:8000/api/activities/${initialData.id}` 
             : 'http://127.0.0.1:8000/api/activities/create';
             
-        // Use POST for both, with method spoofing for PUT if editing
         const method = 'POST';
         if (isEditing) formData.append('_method', 'PUT');
 
@@ -86,7 +81,6 @@ const ActivityForm = ({ initialData, onSuccess, isPopup }) => {
                 headers: {
                     'Authorization': `Bearer ${token}`,
                     'Accept': 'application/json',
-                    // Note: Browser automatically sets Content-Type to multipart/form-data
                 },
                 body: formData 
             });
@@ -106,6 +100,8 @@ const ActivityForm = ({ initialData, onSuccess, isPopup }) => {
     const iconStyle = "absolute left-3 top-[34px] text-white/20 size-4";
     const inputClass = 'w-full pl-9 pr-3 py-2 bg-white/5 border border-white/10 rounded-xl text-xs text-white focus:outline-none focus:ring-1 focus:ring-orange-500/20 focus:border-orange-500/50 transition-all placeholder:text-white/10';
     const labelClass = "text-[9px] font-bold tracking-[1.5px] text-white/40 uppercase ml-1";
+
+    const today = new Date().toISOString().split("T")[0];
 
     return (
         <div className={`w-full bg-[#1a1518]/95 border border-white/10 rounded-[24px] md:p-8 shadow-2xl backdrop-blur-xl max-h-[100vh] overflow-y-auto`}>
@@ -129,7 +125,6 @@ const ActivityForm = ({ initialData, onSuccess, isPopup }) => {
                     <textarea name="description" value={form.description} placeholder="Describe the experience..." rows="2" required className={`${inputClass} resize-none pl-9`} onChange={handleChange} />
                 </div>
 
-                {/* MODIFIED IMAGE SECTION: Multi-upload Gallery */}
                 <div className="md:col-span-2 space-y-2">
                     <label className={labelClass}>Activity Gallery (At least 1 image)</label>
                     <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
@@ -162,30 +157,39 @@ const ActivityForm = ({ initialData, onSuccess, isPopup }) => {
                 </div>
 
                 <div className={inputWrapper}>
-                    <label className={labelClass}>Pricing Model</label>
-                    <select name="is_free" value={form.is_free} className={`${inputClass} appearance-none cursor-pointer pl-3`} onChange={handleChange}>
-                        <option value={true} className="bg-[#1a1a1a]">Free Activity</option>
-                        <option value={false} className="bg-[#1a1a1a]">Paid Activity</option>
-                    </select>
-                </div>
-
-                <div className={inputWrapper}>
                     <label className={labelClass}>Price (MAD)</label>
                     <FiDollarSign className={iconStyle} />
                     <input type="number" name="price" value={form.price} placeholder="0.00" disabled={form.is_free} required className={`${inputClass} disabled:opacity-30`} onChange={handleChange} />
                 </div>
 
-                <div className={inputWrapper}>
-                    <label className={labelClass}>Start Date</label>
-                    <FiCalendar className={iconStyle} />
-                    <input type="date" name="start_date" value={form.start_date} required className={inputClass} onChange={handleChange} />
+               <div className={inputWrapper}>
+                <label className={labelClass}>Start Date</label>
+                <FiCalendar className={iconStyle} />
+                <input
+                    type="date"
+                    name="start_date"
+                    value={form.start_date}
+                    required
+                    min={today}
+                    className={inputClass}
+                    onChange={handleChange}
+                />
                 </div>
 
                 <div className={inputWrapper}>
-                    <label className={labelClass}>End Date</label>
-                    <FiCalendar className={iconStyle} />
-                    <input type="date" name="end_date" value={form.end_date} required className={inputClass} onChange={handleChange} />
+                <label className={labelClass}>End Date</label>
+                <FiCalendar className={iconStyle} />
+                <input
+                    type="date"
+                    name="end_date"
+                    value={form.end_date}
+                    required
+                    min={form.start_date || today} 
+                    className={inputClass}
+                    onChange={handleChange}
+                />
                 </div>
+
 
                 <div className="md:col-span-2 mt-4">
                     <button type="submit" className="w-full bg-gradient-to-r from-orange-500 to-red-500 text-white py-3 rounded-xl font-black text-xs uppercase tracking-[2px] flex items-center justify-center gap-2 hover:shadow-lg transition-all active:scale-[0.98]">

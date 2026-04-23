@@ -20,7 +20,7 @@ use App\Models\Favorites;
 class User extends Authenticatable implements JWTSubject
 {
     protected $fillable = [
-        'name', 'email', 'role', 'age', 'city', 'image', 'password'
+        'name', 'email', 'role', 'date_of_birth', 'city', 'image', 'password'
     ];
 
     protected $hidden = [

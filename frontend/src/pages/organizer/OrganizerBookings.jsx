@@ -14,8 +14,6 @@ import {
   RefreshCw,
 } from 'lucide-react';
 
-
-
 const StatusBadge = ({ status }) => {
   const map = {
     pending:   { cls: 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20', icon: Clock },

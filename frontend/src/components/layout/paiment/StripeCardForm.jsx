@@ -1,14 +1,23 @@
 import React, { useState, useEffect } from 'react';
-import { loadStripe } from '@stripe/stripe-js';
 import {
-  Elements,
   CardNumberElement,
   CardExpiryElement,
   CardCvcElement,
   useStripe,
   useElements,
 } from '@stripe/react-stripe-js';
-import { FiShield, FiX, FiCheck, FiLock, FiUsers, FiCalendar, FiCreditCard } from 'react-icons/fi';
+import { FiLock, FiCreditCard } from 'react-icons/fi';
+
+const STRIPE_STYLE = {
+  base: {
+    color: '#e4e4e7',
+    fontFamily: "'Inter', sans-serif",
+    fontSize: '14px',
+    fontSmoothing: 'antialiased',
+    '::placeholder': { color: '#52525b' },
+  },
+  invalid: { color: '#f87171' },
+};
 
 // ── Step 2: Stripe card form (inner — must be inside <Elements>) ───────────────
 const StripeCardForm = ({ booking, onSuccess, onClose }) => {
@@ -29,9 +38,11 @@ const StripeCardForm = ({ booking, onSuccess, onClose }) => {
           method:  'POST',
           headers: { 
             'Authorization' : `Bearer ${token}`, 
-            'Accept' : 'application/json' },
+            'Accept' : 'application/json' 
+          },
         });
         const data = await res.json();
+        console.log("form posting booking : ", data);
         if (res.ok) {
           setClientSecret(data.client_secret);
         } else {
@@ -151,3 +162,5 @@ const StripeCardForm = ({ booking, onSuccess, onClose }) => {
     </div>
   );
 };
+
+export default StripeCardForm;

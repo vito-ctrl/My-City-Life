@@ -11,18 +11,6 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('shared_booking_requests', function (Blueprint $table) {
-            $table->id();
-
-            $table->foreignId('activity_id')->constrained()->cascadeOnDelete();
-            $table->foreignId('sender_id')->constrained('users')->cascadeOnDelete();
-            $table->foreignId('receiver_id')->constrained('users')->cascadeOnDelete();
-            
-            $table->enum('status', ['pending', 'accepted', 'declined'])->default('pending');
-            
-            $table->timestamps();
-        });
-
         Schema::create('booking_chats', function (Blueprint $table) {
             $table->id();
             $table->foreignId('activity_id')->constrained()->cascadeOnDelete();
@@ -51,6 +39,9 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('social_matching_tables');
+        Schema::dropIfExists('booking_messages');
+        Schema::dropIfExists('booking_chat_user');
+        Schema::dropIfExists('booking_chats');
+        Schema::dropIfExists('shared_booking_requests');
     }
 };

@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use Tymon\JWTAuth\Facades\JWTAuth;
+
 use App\Models\Like;
 use App\Models\Activity;
 use App\Models\Business;
@@ -19,7 +19,7 @@ class LikeController extends Controller
     public function toggle(Request $request, $type, $id)
     {
         try {
-            $user = JWTAuth::parseToken()->authenticate();
+            $user = auth()->user();
 
             $model = $this->getModelInstance($type, $id);
             $fkColumn = $this->getForeignKeyColumn($type);
@@ -80,7 +80,7 @@ class LikeController extends Controller
     public function getLikes($type, $id)
     {
         try {
-            $user = JWTAuth::parseToken()->authenticate();
+            $user = auth()->user();
 
             $model = $this->getModelInstance($type, $id);
 

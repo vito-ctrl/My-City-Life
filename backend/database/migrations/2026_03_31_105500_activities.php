@@ -19,7 +19,7 @@ return new class extends Migration
             $table->string('category');
             $table->string('location')->nullable();
             $table->float('price')->default(0);
-            $table->boolean('is_free')->default(false); 
+            // $table->boolean('is_free')->default(false); 
             $table->text('image')->nullable();
             $table->dateTime('start_date')->nullable();
             $table->dateTime('end_date')->nullable();

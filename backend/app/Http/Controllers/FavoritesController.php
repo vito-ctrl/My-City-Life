@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use Tymon\JWTAuth\Facades\JWTAuth;
+
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use App\Models\Activity;
 use App\Models\Business;
@@ -13,7 +13,7 @@ class FavoritesController extends Controller
 {
     public function toggle(Request $request, $type, $id){
         try{
-            $user = JWTAuth::parseToken()->authenticate();
+            $user = auth()->user();
 
             $model = $this->getModelInstance($type, $id);
             $fkColumn = $this->getForeignKeyColumn($type);
@@ -73,7 +73,7 @@ class FavoritesController extends Controller
     public function getFavorites($type, $id)
     {
         try {
-            $user = JWTAuth::parseToken()->authenticate();
+            $user = auth()->user();
             $model = $this->getModelInstance($type, $id);
 
             $favoritesCount = $model->favorites()->count();
@@ -97,7 +97,7 @@ class FavoritesController extends Controller
     public function getUserFavorites($type)
     {
         try {
-            $user = JWTAuth::parseToken()->authenticate();
+            $user = auth()->user();
 
             if (strtolower($type) === 'activities') {
                 $favorites = Activity::whereHas('favorites', function ($query) use ($user) {

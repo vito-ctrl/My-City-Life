@@ -11,7 +11,6 @@ const ManageActivities = () => {
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingActivity, setEditingActivity] = useState(null);
-  // const {id} = useParams();
   const token = localStorage.getItem('token');
 
   const fetchMyActivities = async () => {
@@ -28,7 +27,6 @@ const ManageActivities = () => {
       setLoading(false);
     }
   };
-  console.log("ac : ", activities);
 
   useEffect(() => { fetchMyActivities(); }, []);
 
@@ -56,9 +54,9 @@ const ManageActivities = () => {
     act.category.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+
   return (
     <div className="min-h-screen bg-[#0a0a0a] text-white">
-      {/* Dynamic Background Elements */}
       {!isModalOpen ? <Header /> : <></> }
       <div className="fixed top-0 left-0 w-full h-full overflow-hidden pointer-events-none z-0">
         <div className="absolute top-[-10%] right-[-5%] w-[500px] h-[500px] bg-orange-500/5 blur-[120px] rounded-full" />
@@ -66,7 +64,6 @@ const ManageActivities = () => {
       </div>
 
       <div className="relative z-10 max-w-7xl mx-auto px-6 py-12">
-        {/* Header Section */}
         <header className="flex flex-col md:flex-row justify-between items-start md:items-center mb-12 gap-6">
           <div>
             <div className="flex items-center gap-3 mb-2">
@@ -108,7 +105,6 @@ const ManageActivities = () => {
           />
         </div>
 
-        {/* Activities List */}
         <div className="grid gap-4">
           {loading ? (
              <div className="py-20 text-center text-white/10 font-black tracking-widest uppercase animate-pulse">Loading Your Data...</div>
@@ -154,7 +150,6 @@ const ManageActivities = () => {
           )}
         </div>
 
-        {/* POPUP MODAL */}
         {isModalOpen && (
           <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-300">
              <div className="relative w-full max-w-2xl animate-in zoom-in-95 duration-300">
@@ -181,7 +176,6 @@ const ManageActivities = () => {
   );
 };
 
-// Helper Component for Stats
 const StatCard = ({ icon, label, value, color }) => (
   <div className="bg-white/[0.02] border border-white/5 p-6 rounded-[28px] hover:border-white/10 transition-colors">
     <div className={`text-2xl mb-4 ${color}`}>{icon}</div>

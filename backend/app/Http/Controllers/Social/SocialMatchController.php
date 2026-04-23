@@ -22,19 +22,25 @@ class SocialMatchController extends Controller
      * Call this from your BookingController after a booking is stored:
      *   (new SocialMatchController)->checkAndNotifyMatch($booking->user_id, $booking->activity_id);
      */
-    public function checkAndNotifyMatch(int $newUserId, int $activityId): void
+    public function checkAndNotifyMatch(Booking $newBooking): void
     {
-        $otherUserIds = Booking::where('activity_id', $activityId)
+        if (!$newBooking->is_open_to_group) return;
+        $newBooking->load('activity');
+
+        $activityId = $newBooking->activity_id;
+        $newUserId  = $newBooking->user_id;
+
+        $potentialMatches = Booking::where('activity_id', $activityId)
             ->where('user_id', '!=', $newUserId)
-            ->pluck('user_id');
+            ->where('status', 'confirmed')
+            ->where('is_open_to_group', true)
+            ->get();
 
-        $activity = \App\Models\Activity::find($activityId);
-
-        foreach ($otherUserIds as $otherUserId) {
+        foreach ($potentialMatches as $match) {
             $alreadyExists = SocialMatchVote::where('activity_id', $activityId)
-                ->where(function ($q) use ($newUserId, $otherUserId) {
-                    $q->where(fn($q) => $q->where('user_one_id', $newUserId)->where('user_two_id', $otherUserId))
-                      ->orWhere(fn($q) => $q->where('user_one_id', $otherUserId)->where('user_two_id', $newUserId));
+                ->where(function ($q) use ($newUserId, $match) {
+                    $q->where(fn($q) => $q->where('user_one_id', $newUserId)->where('user_two_id', $match->user_id))
+                      ->orWhere(fn($q) => $q->where('user_one_id', $match->user_id)->where('user_two_id', $newUserId));
                 })
                 ->exists();
 
@@ -43,14 +49,48 @@ class SocialMatchController extends Controller
             $vote = SocialMatchVote::create([
                 'activity_id'     => $activityId,
                 'user_one_id'     => $newUserId,
-                'user_two_id'     => $otherUserId,
+                'user_two_id'     => $match->user_id,
                 'user_one_status' => 'pending',
                 'user_two_status' => 'pending',
             ]);
 
-            broadcast(new SocialMatchFound($newUserId,   $activity->title, $vote->id));
-            broadcast(new SocialMatchFound($otherUserId, $activity->title, $vote->id));
+            $activityTitle = $newBooking->activity->title;
+            // Notify both
+            foreach ([$newUserId, $match->user_id] as $uid) {
+                $this->createNotification($uid, 'social_match', "Match with someone for {$activityTitle}!", ["vote_id" => $vote->id]);
+                broadcast(new SocialMatchFound($uid, $activityTitle, $vote->id));
+            }
         }
+    }
+
+    private function createNotification($userId, $type, $content, $data = [])
+    {
+        \App\Models\Notification::create([
+            'user_id' => $userId,
+            'type'    => $type,
+            'content' => $content,
+            'data'    => $data,
+            'is_read' => false,
+        ]);
+    }
+
+    public function pending()
+    {
+        $user = auth()->user();
+
+        $votes = SocialMatchVote::with(['activity:id,title', 'userOne:id,name', 'userTwo:id,name'])
+            ->where(function ($q) use ($user) {
+                $q->where(function ($q) use ($user) {
+                    $q->where('user_one_id', $user->id)
+                      ->where('user_one_status', 'pending');
+                })->orWhere(function ($q) use ($user) {
+                    $q->where('user_two_id', $user->id)
+                      ->where('user_two_status', 'pending');
+                });
+            })
+            ->get();
+
+        return response()->json($votes);
     }
 
     /**
@@ -87,7 +127,7 @@ class SocialMatchController extends Controller
         }
 
         if ($vote->bothAccepted()) {
-            return DB::transaction(function () use ($vote) {
+            return DB::transaction(function () use ($vote) {    
                 $chat = BookingChat::create([
                     'type'        => 'social',
                     'activity_id' => $vote->activity_id,
@@ -105,6 +145,10 @@ class SocialMatchController extends Controller
 
                 broadcast(new ChatReady($vote->user_one_id, $chat->slug, $vote->activity->title));
                 broadcast(new ChatReady($vote->user_two_id, $chat->slug, $vote->activity->title));
+                $title = $vote->activity->title;
+                foreach([$vote->user_one_id, $vote->user_two_id] as $uid) {
+                    $this->createNotification($uid, "chat_ready", "Chat ready for $title!", ["chat_slug" => $chat->slug]);
+                }
 
                 return response()->json([
                     'message'   => 'Both accepted! Chat room is ready.',
@@ -114,29 +158,5 @@ class SocialMatchController extends Controller
         }
 
         return response()->json(['message' => 'Vote recorded. Waiting for the other user.']);
-    }
-
-    /**
-     * GET /api/social/pending
-     * Returns all pending votes for the authenticated user.
-     */
-    public function pending()
-    {
-        $user = auth()->user();
-
-        // FIX: was chaining both conditions on the same $q which broke the orWhere grouping
-        $votes = SocialMatchVote::with(['activity:id,title', 'userOne:id,name', 'userTwo:id,name'])
-            ->where(function ($q) use ($user) {
-                $q->where(function ($q) use ($user) {
-                    $q->where('user_one_id', $user->id)
-                      ->where('user_one_status', 'pending');
-                })->orWhere(function ($q) use ($user) {
-                    $q->where('user_two_id', $user->id)
-                      ->where('user_two_status', 'pending');
-                });
-            })
-            ->get();
-
-        return response()->json($votes);
     }
 }

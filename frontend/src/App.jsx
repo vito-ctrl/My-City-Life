@@ -12,8 +12,6 @@ import ResetPassword from './pages/auth/ResetPassword/ResetPassword';
 // ── Route guards ───────────────────────────────────────────────────────────
 // ProtectedRoute: requires a token (user must be logged in)
 import ProtectedRoute from './components/auth/ProtectedRoute';
-// OrganizerRoute: requires a token AND role === 'Organizer'
-import OrganizerRoute from './components/auth/OrganizerRoute';
 
 // ── Regular (user-facing) pages ────────────────────────────────────────────
 import Home from './pages/Home';
@@ -102,20 +100,21 @@ function App() {
             <ProtectedRoute><BusinessDetails /></ProtectedRoute>
           } />
 
+
           {/* ── Organizer-only routes (must be logged in as Organizer) ───── */}
           <Route path="/organizer/dashboard" element={
-            <OrganizerRoute><OrganizerDashboard /></OrganizerRoute>
+            <ProtectedRoute><OrganizerDashboard /></ProtectedRoute>
           } />
           <Route path="/organizer/bookings" element={
-            <OrganizerRoute><OrganizerBookings /></OrganizerRoute>
+            <ProtectedRoute><OrganizerBookings /></ProtectedRoute>
           } />
 
           <Route path="/business/Manage" element={
-            <OrganizerRoute><BusinessManager /></OrganizerRoute>
+            <ProtectedRoute><BusinessManager /></ProtectedRoute>
           } />
 
           <Route path="/business/edit/:id" element={
-            <OrganizerRoute><BusinessEdit /></OrganizerRoute>
+            <ProtectedRoute><BusinessEdit /></ProtectedRoute>
           } />
 
           {/* ── Social routes ───────────────────────────────────────────────── */}

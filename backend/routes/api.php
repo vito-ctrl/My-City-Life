@@ -67,19 +67,23 @@ Route::middleware('auth:api')->group(function () {
     // Comments
     Route::post  ('/comments/{type}/{id}',              [CommentController::class, 'store']);
     Route::delete('/comments/{type}/{id}/{commentId}',  [CommentController::class, 'destroy']);
-
+    
     // Bookings
-    Route::get   ('bookings',                     [BookingController::class, 'index']);
-    Route::post  ('bookings',                     [BookingController::class, 'store']);
-    Route::get   ('bookings/{id}',                [BookingController::class, 'show']);
-    Route::patch ('bookings/{id}/cancel',         [BookingController::class, 'cancel']);
-    Route::patch ('bookings/{id}/confirm',        [BookingController::class, 'confirm']);
-    Route::post  ('bookings/{id}/payment-intent', [BookingController::class, 'createPaymentIntent']);
 
-    // Statistics (Per-User Analytics)
-    Route::get('/statistics/general',           [StatisticController::class, 'general']);
-    Route::get('/statistics/activities/{id}',   [StatisticController::class, 'activitySpecific']);
-    Route::get('/statistics/businesses/{id}',   [StatisticController::class, 'businessSpecific']);
+    Route::apiResource('bookings', BookingController::class)->only(['index', 'store', 'show']);
+
+    Route::prefix('bookings')->group(function () {
+        Route::patch('{id}/cancel', [BookingController::class, 'cancel']);
+        Route::patch('{id}/confirm', [BookingController::class, 'confirm']);
+        Route::post('{id}/payment-intent', [BookingController::class, 'createPaymentIntent']);
+    });
+
+    // statistics
+    Route::prefix('statistics')->group(function () {
+        Route::get('general', [StatisticController::class, 'general']);
+        Route::get('activities/{id}', [StatisticController::class, 'activitySpecific']);
+        Route::get('businesses/{id}', [StatisticController::class, 'businessSpecific']);
+    });
 
     // reservation 
     Route::post('/reservation',   [BusinesReservationController::class, 'StoreReservation']);
@@ -104,6 +108,11 @@ Route::middleware('auth:api')->group(function () {
 
     });
 
+    // Notifications
+    Route::get('/notifications',              [App\Http\Controllers\NotificationController::class, 'index']);
+    Route::get('/notifications/unread-count', [App\Http\Controllers\NotificationController::class, 'unreadCount']);
+    Route::post('/notifications/{id}/read',   [App\Http\Controllers\NotificationController::class, 'markAsRead']);
+
     Route::prefix('social')->group(function () {
         // ── Social Match (user ↔ user) ────────────────────────────────────────
         Route::get('/pending',          [SocialMatchController::class, 'pending']);
@@ -119,7 +128,6 @@ Route::middleware('auth:api')->group(function () {
         Route::get('/support/chats',           [SupportChatController::class, 'index']);
     });
 });
-
 
 // ── Stripe Webhook (No auth — Stripe calls this directly) ─────────────────────
 Route::post('stripe/webhook', [BookingController::class, 'webhook']);
