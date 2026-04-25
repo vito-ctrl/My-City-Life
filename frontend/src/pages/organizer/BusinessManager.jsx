@@ -131,7 +131,6 @@ const ReservationsPanel = ({ businessId, token, onStatusChange }) => {
   );
 };
 
-// ── Business Row ──────────────────────────────────────────────────────────────
 const BusinessRow = ({ business, token, onEdit, onDelete }) => {
   const [expanded, setExpanded] = useState(false);
 

@@ -13,11 +13,8 @@ import {
   DeleteReservationItem,
 } from '../../services/reservation/reservation';
 
-// ── Helpers ───────────────────────────────────────────────────────────────────
-
 const EMPTY_ITEM = { name: '', capacity: '', price: '' };
 
-// ── Inline Item Editor ────────────────────────────────────────────────────────
 const ItemRow = ({ item, onDelete, onUpdate }) => {
   const [editing, setEditing] = useState(false);
   const [draft, setDraft]     = useState({ name: item.name, capacity: item.capacity, price: item.price ?? '' });
@@ -160,7 +157,7 @@ const BusinessEdit = () => {
   };
 
   const handleUpdateItem = async (itemId, data) => {
-    if (!UpdateReservationItem) return null; // graceful if not yet implemented
+    if (!UpdateReservationItem) return null; 
     const res = await UpdateReservationItem(itemId, data);
     if (res) {
       setItems(prev => prev.map(i => i.id === itemId ? { ...i, ...data } : i));

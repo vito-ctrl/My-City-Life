@@ -11,6 +11,8 @@ const Home = () => {
   const [businesses, setBusinesses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [location, setLocation] = useState([]);
+  const [search, setSearch] = useState("");
+
   const user = localStorage.getItem('user');
   const token = localStorage.getItem('token');
 
@@ -74,6 +76,9 @@ const Home = () => {
     // getCityCountry()
   }, [token]);
 
+  activities.forEach(element => {
+    console.log(element.location);
+  });
 
   return (
     <div className="bg-[#0a0a0a]">
@@ -97,6 +102,7 @@ const Home = () => {
                 type="text" 
                 placeholder="Search activities..." 
                 className="bg-transparent flex-1 px-4 py-3 text-white outline-none placeholder:text-white/10"
+                onChange={(e) => setSearch(e.target.value)}
               />
               <button className="bg-orange-500 hover:bg-orange-600 text-white p-3 rounded-full transition-all">
                 <FiChevronRight size={20}/>
@@ -114,6 +120,30 @@ const Home = () => {
           </div>
         </section>
 
+        {search ? <section className="px-8 md:px-16 py-14">
+          <div className="flex flex-col md:flex-row md:items-end justify-between mb-16 gap-6">
+            <div>
+              <h2 className="text-5xl font-black text-white leading-tight italic mt-2">ACTIVITIES FOUNDED</h2>
+            </div>
+          </div>
+
+          {loading ? (
+            <div className="text-white/20 font-black animate-pulse">LOADING DISCOVERIES...</div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {activities.filter(e => e.location.toLowerCase().includes(search.toLowerCase())).map((act) => (
+                <ActivityCard 
+                  key={act.id} 
+                  item={act} 
+                  type="activities" 
+                  onClick={() => navigate(`/activities/${act.id}`)} 
+                />
+              ))}
+            </div>
+          )}
+        </section> : null}
+
+        {/* ACTIVITIES IN YOUR CITY */}
         <section className="px-8 md:px-16 py-14">
           <div className="flex flex-col md:flex-row md:items-end justify-between mb-16 gap-6">
             <div>
@@ -141,7 +171,7 @@ const Home = () => {
           )}
         </section>
 
-        {/* Dynamic Activities Section */}
+        {/* TRENDING Activities */}
         <section className="px-8 md:px-16 py-14">
           <div className="flex flex-col md:flex-row md:items-end justify-between mb-16 gap-6">
             <div>
@@ -169,7 +199,6 @@ const Home = () => {
           )}
         </section>
 
-        {/* Dynamic Businesses Section */}
         <section className="px-8 md:px-16 py-24 bg-white/[0.02] border-t border-white/5">
           <div className="flex flex-col md:flex-row md:items-end justify-between mb-16 gap-6">
             <div>
@@ -190,7 +219,6 @@ const Home = () => {
           </div>
         </section>
 
-        {/* CTA */}
         {!user ? 
           <section className="py-32 px-8 text-center bg-gradient-to-b from-transparent to-orange-500/5">
             <h2 className="text-6xl md:text-7xl font-black text-white italic tracking-tighter mb-8 leading-none">READY TO EXPLORE?</h2>
