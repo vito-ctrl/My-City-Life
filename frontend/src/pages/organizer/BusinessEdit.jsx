@@ -12,6 +12,7 @@ import {
   UpdateReservationItem,
   DeleteReservationItem,
 } from '../../services/reservation/reservation';
+import { API_BASE_URL, getStoredToken } from '../../utils/auth';
 
 const EMPTY_ITEM = { name: '', capacity: '', price: '' };
 
@@ -127,12 +128,20 @@ const BusinessEdit = () => {
   useEffect(() => {
     const loadData = async () => {
       try {
-        const res  = await fetch(`http://127.0.0.1:8000/api/businesses/${id}`);
+        const res  = await fetch(`${API_BASE_URL}/api/businesses/${id}`, {
+          headers: {
+            Authorization: `Bearer ${getStoredToken()}`,
+          },
+        });
         const json = await res.json();
+
+        if (!res.ok || !json?.data) {
+          throw new Error(json?.error || 'Could not load business');
+        }
+
         setBusiness(json.data);
 
         const itemData = await GetReservationItem(id);
-        console.log("itemData", itemData);
         setItems(itemData ?? []);
       } catch (err) {
         console.error(err);

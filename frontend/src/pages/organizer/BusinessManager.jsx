@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import {
-  FiEdit3, FiTrash2, FiMapPin, FiX, FiSearch,
+  FiMapPin, FiX, FiSearch,
   FiBriefcase, FiPlus, FiChevronDown, FiChevronUp,
   FiCheckCircle, FiXCircle, FiClock, FiRefreshCw,
 } from 'react-icons/fi';
@@ -8,6 +8,8 @@ import BusinessForm from '../../components/layout/BusinessForm';
 import Header from '../../components/layout/Header';
 import { useNavigate } from 'react-router-dom';
 import { UpdateReservationStatus, GetReservations } from '../../services/reservation/reservation'; // ← was missing
+import BusinessEditButton from './BusinessEditButton';
+import BusinessDeleteButton from './BusinessDeleteButton';
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -131,7 +133,7 @@ const ReservationsPanel = ({ businessId, token, onStatusChange }) => {
   );
 };
 
-const BusinessRow = ({ business, token, onEdit, onDelete }) => {
+const BusinessRow = ({ business, onEdit, onDelete }) => {
   const [expanded, setExpanded] = useState(false);
 
   return (
@@ -173,18 +175,8 @@ const BusinessRow = ({ business, token, onEdit, onDelete }) => {
             Reservations
             {expanded ? <FiChevronUp size={10} /> : <FiChevronDown size={10} />}
           </button>
-          <button
-            onClick={() => onEdit(business)}
-            className="p-2.5 bg-zinc-800 border border-zinc-700 text-zinc-400 rounded-xl hover:text-white hover:border-zinc-600 transition-all"
-          >
-            <FiEdit3 size={14} />
-          </button>
-          <button
-            onClick={() => onDelete(business.id)}
-            className="p-2.5 bg-red-500/10 border border-red-500/20 text-red-500 rounded-xl hover:bg-red-500 hover:text-white hover:border-transparent transition-all"
-          >
-            <FiTrash2 size={14} />
-          </button>
+          <BusinessEditButton onClick={() => onEdit(business.id)} />
+          <BusinessDeleteButton onClick={() => onDelete(business.id)} />
         </div>
       </div>
 
@@ -199,13 +191,11 @@ const BusinessRow = ({ business, token, onEdit, onDelete }) => {
   );
 };
 
-// ── Main ─────────────────────────────────────────────────────────────────────
 const BusinessManager = () => {
   const [businesses, setBusinesses]   = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading]         = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingBusiness, setEditingBusiness] = useState(null);
 
   const token    = localStorage.getItem('token');
   const navigate = useNavigate();
@@ -240,9 +230,8 @@ const BusinessManager = () => {
     }
   };
 
-  const handleEdit = (business) => {
-    setEditingBusiness(business);
-    navigate(`/business/edit/${business.id}`);
+  const handleEdit = (businessId) => {
+    navigate(`/business/edit/${businessId}`);
   };
 
   const filtered = useMemo(
@@ -273,7 +262,7 @@ const BusinessManager = () => {
             </p>
           </div>
           <button
-            onClick={() => { setEditingBusiness(null); setIsModalOpen(true); }}
+            onClick={() => setIsModalOpen(true)}
             className="bg-amber-500 text-black px-6 py-3.5 rounded-2xl font-black text-xs uppercase tracking-widest flex items-center gap-2 hover:bg-amber-400 active:scale-95 transition-all shadow-lg shadow-amber-500/15"
           >
             <FiPlus strokeWidth={3} size={14} />
@@ -346,7 +335,6 @@ const BusinessManager = () => {
               <BusinessRow
                 key={b.id}
                 business={b}
-                token={token}
                 onEdit={handleEdit}
                 onDelete={handleDelete}
               />
@@ -367,7 +355,6 @@ const BusinessManager = () => {
             </button>
             <BusinessForm
               isPopup={true}
-              initialData={editingBusiness}
               onSuccess={() => { setIsModalOpen(false); fetchMyBusinesses(); }}
             />
           </div>
