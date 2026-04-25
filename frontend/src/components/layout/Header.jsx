@@ -1,7 +1,7 @@
 import NotificationCenter from './NotificationCenter';
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
-import { FiUser, FiLogOut, FiCompass, FiX, FiHeart, FiCalendar, FiList, FiGrid } from 'react-icons/fi';
+import { FiUser, FiLogOut, FiCompass, FiX, FiHeart, FiCalendar, FiList, FiGrid, FiShield } from 'react-icons/fi';
 import { AUTH_CHANGE_EVENT, clearAuthSession, getStoredToken, getStoredUser } from '../../utils/auth';
 import { fetchCurrentProfile } from '../../services/profile';
 
@@ -79,6 +79,8 @@ const Header = () => {
 
   const isActive = (path) => location.pathname === path;
   const hasProfileImage = Boolean(user?.image);
+  const roleKey = user?.role?.toLowerCase();
+  const isAdmin = roleKey === 'admin';
 
   // Primary Navigation (Stays in the Header)
   const NavLinks = () => {
@@ -87,6 +89,29 @@ const Header = () => {
         <Link to="/" className="text-[11px] font-black tracking-widest uppercase hover:text-orange-500 transition-colors text-white/60">
           Explore
         </Link>
+      );
+    }
+
+    if (isAdmin) {
+      return (
+        <>
+          <Link
+            to="/"
+            className={`flex items-center gap-2 text-[11px] font-black uppercase tracking-widest transition-colors ${
+              isActive('/') ? 'text-orange-500' : 'text-white/60 hover:text-white'
+            }`}
+          >
+            <FiCompass /> Explore
+          </Link>
+          <Link
+            to="/admin/dashboard"
+            className={`flex items-center gap-2 text-[11px] font-black uppercase tracking-widest transition-colors ${
+              isActive('/admin/dashboard') ? 'text-orange-500' : 'text-white/60 hover:text-white'
+            }`}
+          >
+            <FiShield /> Admin
+          </Link>
+        </>
       );
     }
 
@@ -253,6 +278,19 @@ const Header = () => {
 
           {/* Action Links */}
           <div className="flex flex-col gap-3">
+            {isAdmin && (
+              <Link
+                to="/admin/dashboard"
+                onClick={() => setIsSidebarOpen(false)}
+                className={`flex items-center justify-between p-4 rounded-2xl transition-all group ${isActive('/admin/dashboard') ? 'bg-orange-500 text-white' : 'bg-white/5 text-white/70 hover:bg-white/10 hover:text-white'}`}
+              >
+                <div className="flex items-center gap-4">
+                  <FiShield size={20} className={isActive('/admin/dashboard') ? 'text-white' : 'text-orange-500'} />
+                  <span className="font-bold text-xs uppercase tracking-widest">Admin Panel</span>
+                </div>
+              </Link>
+            )}
+
             <Link 
               to='/profile' 
               onClick={() => setIsSidebarOpen(false)}
@@ -264,16 +302,18 @@ const Header = () => {
               </div>
             </Link>
 
-            <Link 
-              to="/favorites" 
-              onClick={() => setIsSidebarOpen(false)}
-              className={`flex items-center justify-between p-4 rounded-2xl transition-all group ${isActive('/favorites') ? 'bg-orange-500 text-white' : 'bg-white/5 text-white/70 hover:bg-white/10 hover:text-white'}`}
-            >
-              <div className="flex items-center gap-4">
-                <FiHeart size={20} className={isActive('/favorites') ? 'text-white' : 'text-orange-500'} />
-                <span className="font-bold text-xs uppercase tracking-widest">Favorites</span>
-              </div>
-            </Link>
+            {!isAdmin && (
+              <Link 
+                to="/favorites" 
+                onClick={() => setIsSidebarOpen(false)}
+                className={`flex items-center justify-between p-4 rounded-2xl transition-all group ${isActive('/favorites') ? 'bg-orange-500 text-white' : 'bg-white/5 text-white/70 hover:bg-white/10 hover:text-white'}`}
+              >
+                <div className="flex items-center gap-4">
+                  <FiHeart size={20} className={isActive('/favorites') ? 'text-white' : 'text-orange-500'} />
+                  <span className="font-bold text-xs uppercase tracking-widest">Favorites</span>
+                </div>
+              </Link>
+            )}
             
             <button 
               onClick={handleLogout}
