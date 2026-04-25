@@ -12,6 +12,7 @@ import ResetPassword from './pages/auth/ResetPassword/ResetPassword';
 // ── Route guards ───────────────────────────────────────────────────────────
 // ProtectedRoute: requires a token (user must be logged in)
 import ProtectedRoute from './components/auth/ProtectedRoute';
+import AdminRoute from './components/auth/AdminRoute';
 
 // ── Regular (user-facing) pages ────────────────────────────────────────────
 import Home from './pages/Home';
@@ -33,6 +34,7 @@ import BusinessManager from './pages/organizer/BusinessManager';
 import BusinessDetails from './pages/organizer/BusinessDetails';
 import MyBookings from './pages/bookings/MyBookings';
 import BusinessEdit from './pages/organizer/BusinessEdit';
+import AdminDashboard from './pages/admin/AdminDashboard';
 import { AUTH_CHANGE_EVENT, getStoredToken } from './utils/auth';
 
 
@@ -113,6 +115,10 @@ function App() {
 
           <Route path="/business/edit/:id" element={
             <ProtectedRoute><BusinessEdit /></ProtectedRoute>
+          } />
+
+          <Route path="/admin/dashboard" element={
+            <AdminRoute><AdminDashboard /></AdminRoute>
           } />
 
 

@@ -79,8 +79,7 @@ const Header = () => {
 
   const isActive = (path) => location.pathname === path;
   const hasProfileImage = Boolean(user?.image);
-  const roleKey = user?.role?.toLowerCase();
-  const isAdmin = roleKey === 'admin';
+  const isAdmin = user?.role?.toLowerCase() === 'admin';
 
   // Primary Navigation (Stays in the Header)
   const NavLinks = () => {
@@ -286,7 +285,7 @@ const Header = () => {
               >
                 <div className="flex items-center gap-4">
                   <FiShield size={20} className={isActive('/admin/dashboard') ? 'text-white' : 'text-orange-500'} />
-                  <span className="font-bold text-xs uppercase tracking-widest">Admin Panel</span>
+                  <span className="font-bold text-xs uppercase tracking-widest">Admin</span>
                 </div>
               </Link>
             )}
