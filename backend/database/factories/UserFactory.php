@@ -30,10 +30,13 @@ class UserFactory extends Factory
             'role' => 'user',
             'date_of_birth' => fake()->dateTimeBetween('-60 years', '-18 years')->format('Y-m-d'),
             'city' => fake()->city(),
-            'image' => null,
+            'image' => 'users/' . fake()->numberBetween(1, 12) . '.jpg',
             'email_verified_at' => now(),
             'password' => static::$password ??= Hash::make('password'),
             'remember_token' => Str::random(10),
+            'banned_at' => null,
+            'banned_reason' => null,
+            'banned_by' => null,
         ];
     }
 
@@ -44,6 +47,28 @@ class UserFactory extends Factory
     {
         return $this->state(fn (array $attributes) => [
             'email_verified_at' => null,
+        ]);
+    }
+
+    public function organizer(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'role' => 'Organizer',
+        ]);
+    }
+
+    public function admin(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'role' => 'admin',
+        ]);
+    }
+
+    public function banned(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'banned_at' => now(),
+            'banned_reason' => fake()->sentence(),
         ]);
     }
 }
