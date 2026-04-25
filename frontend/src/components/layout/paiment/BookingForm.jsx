@@ -6,7 +6,6 @@ import { FiCheck, FiUsers, FiCalendar } from 'react-icons/fi';
 const BookingForm = ({ activityId, activityPrice, isFree, onBookingCreated, onClose }) => {
   const [bookingDate, setBookingDate]       = useState('');
   const [guests, setGuests]                 = useState(1);
-  const [isOpenToGroup, setIsOpenToGroup]   = useState(false);
   const [error, setError]                   = useState('');
   const [isSubmitting, setIsSubmitting]     = useState(false);
 
@@ -32,7 +31,7 @@ const BookingForm = ({ activityId, activityPrice, isFree, onBookingCreated, onCl
           activity_id:       activityId,
           booking_date:      bookingDate,
           number_of_guests:  guests,
-          is_open_to_group:  isOpenToGroup,
+
         }),
       });
 
@@ -93,22 +92,7 @@ const BookingForm = ({ activityId, activityPrice, isFree, onBookingCreated, onCl
         </div>
       </div>
 
-      {/* Group toggle */}
-      <div className="bg-zinc-800/50 border border-zinc-700/50 rounded-xl p-4">
-        <div className="flex items-center justify-between">
-          <div>
-            <h4 className="text-xs font-bold text-white uppercase tracking-wider">Shared Booking</h4>
-            <p className="text-[10px] text-zinc-500 mt-0.5">Allow others to join and chat with you.</p>
-          </div>
-          <button
-            type="button"
-            onClick={() => setIsOpenToGroup(v => !v)}
-            className={`relative w-10 h-5 rounded-full transition-colors ${isOpenToGroup ? 'bg-amber-500' : 'bg-zinc-700'}`}
-          >
-            <span className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform ${isOpenToGroup ? 'translate-x-5' : ''}`} />
-          </button>
-        </div>
-      </div>
+
 
       {/* Price summary */}
       {!isFree && (

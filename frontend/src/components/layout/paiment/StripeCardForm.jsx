@@ -1,12 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
-  CardNumberElement,
-  CardExpiryElement,
   CardCvcElement,
-  useStripe,
+  CardExpiryElement,
+  CardNumberElement,
   useElements,
+  useStripe,
 } from '@stripe/react-stripe-js';
-import { FiLock, FiCreditCard } from 'react-icons/fi';
+import { FiCreditCard, FiLock } from 'react-icons/fi';
 
 const STRIPE_STYLE = {
   base: {
@@ -19,34 +19,34 @@ const STRIPE_STYLE = {
   invalid: { color: '#f87171' },
 };
 
-// ── Step 2: Stripe card form (inner — must be inside <Elements>) ───────────────
-const StripeCardForm = ({ booking, onSuccess, onClose }) => {
-  const stripe   = useStripe();
+const StripeCardForm = ({ booking, onSuccess, onClose, recordType = 'booking' }) => {
+  const stripe = useStripe();
   const elements = useElements();
+  const endpointBase = recordType === 'reservation' ? 'reservations' : 'bookings';
+  const resourceLabel = recordType === 'reservation' ? 'reservation' : 'booking';
 
-  const [clientSecret, setClientSecret]   = useState(null);
-  const [cardError, setCardError]         = useState('');
-  const [isProcessing, setIsProcessing]   = useState(false);
+  const [clientSecret, setClientSecret] = useState(null);
+  const [cardError, setCardError] = useState('');
+  const [isProcessing, setIsProcessing] = useState(false);
   const [loadingIntent, setLoadingIntent] = useState(true);
 
-  // Fetch payment intent as soon as this step mounts
   useEffect(() => {
     const fetchIntent = async () => {
       try {
         const token = localStorage.getItem('token');
-        const res   = await fetch(`http://127.0.0.1:8000/api/bookings/${booking.id}/payment-intent`, {
-          method:  'POST',
-          headers: { 
-            'Authorization' : `Bearer ${token}`, 
-            'Accept' : 'application/json' 
+        const res = await fetch(`http://127.0.0.1:8000/api/${endpointBase}/${booking.id}/payment-intent`, {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${token}`,
+            Accept: 'application/json',
           },
         });
         const data = await res.json();
-        console.log("form posting booking : ", data);
+
         if (res.ok) {
           setClientSecret(data.client_secret);
         } else {
-          setCardError(data.error ?? 'Could not initiate payment. Please try again.');
+          setCardError(data.error ?? `Could not initiate ${resourceLabel} payment. Please try again.`);
         }
       } catch {
         setCardError('Network error while loading payment form.');
@@ -54,11 +54,13 @@ const StripeCardForm = ({ booking, onSuccess, onClose }) => {
         setLoadingIntent(false);
       }
     };
+
     fetchIntent();
-  }, [booking.id]);
+  }, [booking.id, endpointBase, resourceLabel]);
 
   const handlePay = async () => {
     if (!stripe || !elements || !clientSecret) return;
+
     setCardError('');
     setIsProcessing(true);
 
@@ -69,27 +71,55 @@ const StripeCardForm = ({ booking, onSuccess, onClose }) => {
     });
 
     if (error) {
-      // Stripe gives user-facing messages in error.message
       setCardError(error.message);
       setIsProcessing(false);
-    } else if (paymentIntent.status === 'succeeded') {
-      // Webhook will handle the booking status update server-side
-      onSuccess();
+      return;
+    }
+
+    if (paymentIntent.status === 'succeeded') {
+      try {
+        const token = localStorage.getItem('token');
+        const res = await fetch(`http://127.0.0.1:8000/api/${endpointBase}/${booking.id}/payment-sync`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+            Accept: 'application/json',
+          },
+          body: JSON.stringify({
+            payment_intent_id: paymentIntent.id,
+          }),
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) {
+          setCardError(data.error ?? `Payment succeeded, but ${resourceLabel} sync failed.`);
+          setIsProcessing(false);
+          return;
+        }
+
+        onSuccess(data[resourceLabel] ?? data.booking ?? data.reservation ?? booking);
+      } catch {
+        setCardError(`Payment succeeded, but we could not sync the ${resourceLabel}. Please refresh and check again.`);
+        setIsProcessing(false);
+      }
     }
   };
 
   const inputWrap = 'w-full bg-zinc-800 border border-zinc-700 rounded-xl px-4 py-3 focus-within:border-amber-500 transition-colors';
 
-  if (loadingIntent) return (
-    <div className="flex flex-col items-center gap-3 py-10">
-      <div className="w-7 h-7 border-2 border-amber-500 border-t-transparent rounded-full animate-spin" />
-      <p className="text-zinc-500 text-xs font-bold uppercase tracking-widest">Preparing payment...</p>
-    </div>
-  );
+  if (loadingIntent) {
+    return (
+      <div className="flex flex-col items-center gap-3 py-10">
+        <div className="w-7 h-7 border-2 border-amber-500 border-t-transparent rounded-full animate-spin" />
+        <p className="text-zinc-500 text-xs font-bold uppercase tracking-widest">Preparing payment...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-5">
-      {/* Order summary */}
       <div className="flex items-center justify-between px-4 py-3 bg-zinc-800/30 border border-zinc-700/30 rounded-xl">
         <span className="text-xs text-zinc-500 font-bold uppercase tracking-widest">Amount due</span>
         <span className="text-lg font-black text-white">
@@ -98,7 +128,6 @@ const StripeCardForm = ({ booking, onSuccess, onClose }) => {
         </span>
       </div>
 
-      {/* Card number */}
       <div>
         <label className="flex items-center gap-2 text-zinc-400 text-[10px] font-bold uppercase tracking-widest mb-2">
           <FiCreditCard size={11} className="text-amber-500" /> Card Number
@@ -108,7 +137,6 @@ const StripeCardForm = ({ booking, onSuccess, onClose }) => {
         </div>
       </div>
 
-      {/* Expiry + CVC side by side */}
       <div className="grid grid-cols-2 gap-3">
         <div>
           <label className="text-zinc-400 text-[10px] font-bold uppercase tracking-widest mb-2 block">Expiry</label>
@@ -124,7 +152,6 @@ const StripeCardForm = ({ booking, onSuccess, onClose }) => {
         </div>
       </div>
 
-      {/* Test card hint (remove in production) */}
       <p className="text-[10px] text-zinc-600 font-bold text-center">
         Test card: 4242 4242 4242 4242 · any future date · any CVC
       </p>
@@ -135,10 +162,9 @@ const StripeCardForm = ({ booking, onSuccess, onClose }) => {
         </p>
       )}
 
-      {/* Security badge */}
       <div className="flex items-center justify-center gap-2 text-zinc-600 text-[10px] font-bold uppercase tracking-widest">
         <FiLock size={10} />
-        Secured by Stripe — your card data never touches our server
+        Secured by Stripe - your card data never touches our server
       </div>
 
       <div className="flex items-center gap-3 pt-2">

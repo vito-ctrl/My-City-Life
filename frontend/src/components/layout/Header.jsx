@@ -2,47 +2,83 @@ import NotificationCenter from './NotificationCenter';
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { FiUser, FiLogOut, FiCompass, FiX, FiHeart, FiCalendar, FiList, FiGrid } from 'react-icons/fi';
+import { AUTH_CHANGE_EVENT, clearAuthSession, getStoredToken, getStoredUser } from '../../utils/auth';
+import { fetchCurrentProfile } from '../../services/profile';
 
 const Header = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const [user, setUser] = useState(null);
+  const [user, setUser] = useState(() => getStoredToken() ? getStoredUser() : null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [loading, setLoading] = useState(true);
-  
-  const token = localStorage.getItem('token');
+  const [loading, setLoading] = useState(() => Boolean(getStoredToken()) && !getStoredUser());
+
   useEffect(() => {
-    const fetchUser = async () => {
+    const syncStoredUser = () => {
+      const token = getStoredToken();
+      const storedUser = token ? getStoredUser() : null;
+
+      setUser(storedUser);
+      setLoading(Boolean(token) && !storedUser);
+
       if (!token) {
-        setLoading(false); 
-        return;
-      }else{
-        try {
-          const res = await fetch('http://127.0.0.1:8000/api/profile', {
-            headers: { 'Authorization': `Bearer ${token}`}
-          });
-          const data = await res.json();
-          setUser(data.user);
-        } catch (err) {
-          console.error("Auth check failed", err);
-        } finally {
-          setLoading(false);
-        }
+        setIsSidebarOpen(false);
       }
     };
-    fetchUser();
-  }, [token]);
+
+    syncStoredUser();
+
+    window.addEventListener('storage', syncStoredUser);
+    window.addEventListener(AUTH_CHANGE_EVENT, syncStoredUser);
+
+    return () => {
+      window.removeEventListener('storage', syncStoredUser);
+      window.removeEventListener(AUTH_CHANGE_EVENT, syncStoredUser);
+    };
+  }, []);
+
+  useEffect(() => {
+    let ignore = false;
+    const token = getStoredToken();
+
+    if (!token) {
+      setLoading(false);
+      return undefined;
+    }
+
+    fetchCurrentProfile(token)
+      .then((profile) => {
+        if (!ignore && profile?.user) {
+          setUser(profile.user);
+        }
+      })
+      .catch((err) => {
+        console.error("Auth check failed", err);
+        if (!ignore) {
+          setUser(getStoredToken() ? getStoredUser() : null);
+        }
+      })
+      .finally(() => {
+        if (!ignore) {
+          setLoading(false);
+        }
+      });
+
+    return () => {
+      ignore = true;
+    };
+  }, [location.pathname]);
 
   if (loading) return <div className="h-[72px] bg-[#0a0a0a]" />;
 
   const handleLogout = () => {
-    localStorage.removeItem('token');
+    clearAuthSession();
     setUser(null);
     setIsSidebarOpen(false);
     navigate('/login');
   };
 
   const isActive = (path) => location.pathname === path;
+  const hasProfileImage = Boolean(user?.image);
 
   // Primary Navigation (Stays in the Header)
   const NavLinks = () => {
@@ -82,14 +118,7 @@ const Header = () => {
             <FiList /> My Businesses
           </Link>
 
-          <Link
-            to="/messages"
-            className={`flex items-center gap-2 text-[11px] font-black uppercase tracking-widest transition-colors ${
-              isActive('/messages') ? 'text-orange-500' : 'text-white/60 hover:text-white'
-            }`}
-          >
-            <FiList /> Chat
-          </Link>
+
 
           <Link
             to="/activity/manage"
@@ -109,29 +138,22 @@ const Header = () => {
           <FiCompass /> Explore
         </Link>
         <Link
-          to="/activity/manage"
+          to="/bookings"
           className={`flex items-center gap-2 text-[11px] font-black uppercase tracking-widest transition-colors ${
-            isActive('/activity/manage') ? 'text-orange-500' : 'text-white/60 hover:text-white'
+            isActive('/bookings') ? 'text-orange-500' : 'text-white/60 hover:text-white'
           }`}
         >
-          <FiList /> My Activities
+          <FiCalendar /> Bookings
         </Link>
         <Link
-            to="/organizer/bookings"
-            className={`flex items-center gap-2 text-[11px] font-black uppercase tracking-widest transition-colors ${
-              isActive('/organizer/bookings') ? 'text-orange-500' : 'text-white/60 hover:text-white'
-            }`}
-          >
-            <FiList /> Booking
-          </Link>
-        <Link
-            to="/messages"
-            className={`flex items-center gap-2 text-[11px] font-black uppercase tracking-widest transition-colors ${
-              isActive('/messages') ? 'text-orange-500' : 'text-white/60 hover:text-white'
-            }`}
-          >
-          <FiList /> Chat
+          to="/favorites"
+          className={`flex items-center gap-2 text-[11px] font-black uppercase tracking-widest transition-colors ${
+            isActive('/favorites') ? 'text-orange-500' : 'text-white/60 hover:text-white'
+          }`}
+        >
+          <FiHeart /> Favorites
         </Link>
+
       </>
     );
   };
@@ -170,7 +192,7 @@ const Header = () => {
                   <p className="text-[9px] font-bold text-orange-500/60 uppercase tracking-widest">{user.role}</p>
                 </div>
                 <div className="w-10 h-10 bg-white/5 border border-white/10 rounded-xl flex items-center justify-center group-hover:border-orange-500/50 group-hover:bg-orange-500/5 transition-all">
-                  {user.image === 'http://127.0.0.1:8000/storage' ? (
+                  {!hasProfileImage ? (
                     <FiUser className="text-white" size={18} />
                   ): (
                     <img src={user.image} alt="user image" className="rounded h-10 w-10" size={10}/>
@@ -214,10 +236,10 @@ const Header = () => {
           {/* Identity Card */}
           <div 
             className="relative overflow-hidden rounded-3xl p-6 mb-8 border border-white/10 bg-gradient-to-br from-white/[0.07] to-transparent bg-cover bg-center"
-            style={{ backgroundImage: user?.image === 'http://127.0.0.1:8000/storage' ? <FiUser className="absolute -right-4 -bottom-4 text-white/5" size={100} /> : `url(${user?.image})`}}
+            style={hasProfileImage ? { backgroundImage: `url(${user.image})` } : undefined}
           >
             {/* Dark Overlay - only visible if there is an image to ensure text readability */}
-            {user?.image && <div className="absolute inset-0 bg-black/40 z-0" />}
+            {hasProfileImage && <div className="absolute inset-0 bg-black/40 z-0" />}
 
             <div className="relative z-10">
               <p className="text-white font-black text-xl uppercase italic tracking-tighter leading-none">
@@ -243,12 +265,12 @@ const Header = () => {
             </Link>
 
             <Link 
-              to="/Favorites" 
+              to="/favorites" 
               onClick={() => setIsSidebarOpen(false)}
-              className={`flex items-center justify-between p-4 rounded-2xl transition-all group ${isActive('/Favorites') ? 'bg-orange-500 text-white' : 'bg-white/5 text-white/70 hover:bg-white/10 hover:text-white'}`}
+              className={`flex items-center justify-between p-4 rounded-2xl transition-all group ${isActive('/favorites') ? 'bg-orange-500 text-white' : 'bg-white/5 text-white/70 hover:bg-white/10 hover:text-white'}`}
             >
               <div className="flex items-center gap-4">
-                <FiHeart size={20} className={isActive('/Favorites') ? 'text-white' : 'text-orange-500'} />
+                <FiHeart size={20} className={isActive('/favorites') ? 'text-white' : 'text-orange-500'} />
                 <span className="font-bold text-xs uppercase tracking-widest">Favorites</span>
               </div>
             </Link>

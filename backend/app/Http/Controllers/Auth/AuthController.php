@@ -20,7 +20,7 @@ class AuthController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'email', 'max:255', 'unique:users,email'],
             'password' => ['required', 'string', 'min:6', 'confirmed'],
-            'role' => ['required', 'in:user,admin,Organizer,Guide Local'],
+            'role' => ['required', 'in:user,Organizer'],
             'date_of_birth' => ['required','date','before:-16 years','after:1900-01-01'],
             'city' => ['required', 'string', 'max:100'],
             'image' => ['nullable', 'image', 'mimes:jpg,jpeg,png', 'max:2048'],
@@ -58,21 +58,18 @@ class AuthController extends Controller
                 'type' => $request->business_type,
                 'location' => $request->business_location,
                 'description' => $request->business_description,
+                'is_approved' => false,
             ]);
 
             $user->assignRole('Organizer');
         }
 
-        if ($request->role === 'user' || $request->role === 'Guide') {
+        if ($request->role === 'user') {
             UserProfile::create([
                 'user_id' => $user->id,
-                'interests' => $request->interests ? json_encode($request->interests) : null,
+                'interests' => $request->interests ? json_encode($request->interests) : null, 
             ]);
             
-            $user->assignRole($request->role);
-        }
-
-        if ($request->role === 'admin') {
             $user->assignRole($request->role);
         }
 
@@ -93,9 +90,19 @@ class AuthController extends Controller
             return response()->json(['error' => 'Unauthorized'], 401);
         }
 
+        $user = auth('api')->user();
+
+        if ($user->isBanned()) {
+            auth('api')->logout();
+
+            return response()->json([
+                'error' => 'Your account has been banned.',
+            ], 403);
+        }
+
         return response()->json([
             'token' => $token,
-            'user' => auth('api')->user()
+            'user' => $user
         ]);
     }
 

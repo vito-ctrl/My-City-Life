@@ -1,5 +1,5 @@
 import './App.css'
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 
 // ── Auth pages (always public) ─────────────────────────────────────────────
@@ -28,47 +28,38 @@ import TestBooking from './pages/TestBooking/TestBooking';
 import OrganizerDashboard from './pages/organizer/OrganizerDashboard';
 import OrganizerBookings from './pages/organizer/OrganizerBookings';
 
-// ── Social/Match pages ─────────────────────────────────────────────────────
-import MatchNotification from './pages/Match/MatchNotification';
-import ChatRoom from './pages/Match/ChatRoom';
 import { refreshEchoAuth } from './services/Echo/echo';
 import BusinessManager from './pages/organizer/BusinessManager';
 import BusinessDetails from './pages/organizer/BusinessDetails';
+import MyBookings from './pages/bookings/MyBookings';
 import BusinessEdit from './pages/organizer/BusinessEdit';
+import { AUTH_CHANGE_EVENT, getStoredToken } from './utils/auth';
 
-import MessagesPage from './pages/chat/MessagesPage';
+
 
 function App() {
-  const [user, setUser] = useState(() => {
-    const userStr = localStorage.getItem('user');
-    return userStr ? JSON.parse(userStr) : null;
-  });
-
   useEffect(() => {
-    // Initial echo auth if user exists
-    if (user) refreshEchoAuth();
-  }, []);
-
-  useEffect(() => {
-    // Interval to detect storage changes (e.g. after login/logout in other components)
-    const interval = setInterval(() => {
-      const currentUserStr = localStorage.getItem('user');
-      const currentUser = currentUserStr ? JSON.parse(currentUserStr) : null;
-      
-      // Only update if the content has actually changed
-      if (JSON.stringify(currentUser) !== JSON.stringify(user)) {
-        setUser(currentUser);
-        if (currentUser) refreshEchoAuth();
+    const syncEchoAuth = () => {
+      if (getStoredToken()) {
+        refreshEchoAuth();
       }
-    }, 1000);
+    };
 
-    return () => clearInterval(interval);
-  }, [user]);
+    syncEchoAuth();
+
+    window.addEventListener('storage', syncEchoAuth);
+    window.addEventListener(AUTH_CHANGE_EVENT, syncEchoAuth);
+
+    return () => {
+      window.removeEventListener('storage', syncEchoAuth);
+      window.removeEventListener(AUTH_CHANGE_EVENT, syncEchoAuth);
+    };
+  }, []);
 
   return (
     <>
       <BrowserRouter>
-        {user && <MatchNotification currentUserId={user.id} />}
+
         <Routes>
 
           {/* ── Public routes (no login required) ───────────────────────── */}
@@ -96,6 +87,12 @@ function App() {
           <Route path="/profile" element={
             <ProtectedRoute><Profile /></ProtectedRoute>
           } />
+          <Route path="/favorites" element={
+            <ProtectedRoute><ActivitiesFavorites /></ProtectedRoute>
+          } />
+          <Route path="/bookings" element={
+            <ProtectedRoute><MyBookings /></ProtectedRoute>
+          } />
           <Route path="/organizer/details/:id" element={
             <ProtectedRoute><BusinessDetails /></ProtectedRoute>
           } />
@@ -105,6 +102,7 @@ function App() {
           <Route path="/organizer/dashboard" element={
             <ProtectedRoute><OrganizerDashboard /></ProtectedRoute>
           } />
+
           <Route path="/organizer/bookings" element={
             <ProtectedRoute><OrganizerBookings /></ProtectedRoute>
           } />
@@ -117,14 +115,7 @@ function App() {
             <ProtectedRoute><BusinessEdit /></ProtectedRoute>
           } />
 
-          {/* ── Social routes ───────────────────────────────────────────────── */}
-          <Route path="/messages" element={
-            <ProtectedRoute><MessagesPage /></ProtectedRoute>
-          } />
-          
-          <Route path="/chat/:slug" element={
-            <ProtectedRoute><ChatRoom /></ProtectedRoute>
-          } />
+
 
           {/* Test route (development only) */}
           <Route path="/test-booking" element={<TestBooking />} />

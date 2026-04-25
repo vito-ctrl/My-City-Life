@@ -12,13 +12,15 @@ const Home = () => {
   const [loading, setLoading] = useState(true);
   const [location, setLocation] = useState([]);
   const user = localStorage.getItem('user');
+  const token = localStorage.getItem('token');
 
   useEffect(() => {
     const fetchData = async () => {
       try {
+        const headers = token ? { Authorization: `Bearer ${token}` } : {};
         const [actRes, busRes] = await Promise.all([
-          fetch('http://127.0.0.1:8000/api/activities'),
-          fetch('http://127.0.0.1:8000/api/businesses')
+          fetch('http://127.0.0.1:8000/api/activities', { headers }),
+          fetch('http://127.0.0.1:8000/api/businesses', { headers })
         ]);
         
         const acts = await actRes.json();
@@ -70,7 +72,7 @@ const Home = () => {
       }
     };
     // getCityCountry()
-  }, []);
+  }, [token]);
 
 
   return (

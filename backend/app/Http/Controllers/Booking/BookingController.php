@@ -4,12 +4,10 @@ namespace App\Http\Controllers\Booking;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-
 use App\Models\Booking;
-use Stripe\Stripe;
-use Stripe\PaymentIntent;
-use Stripe\Webhook;
 use App\Models\Activity;
+use App\Models\Reservation;
+use App\Services\NotificationService;
 
 class BookingController extends Controller
 {
@@ -20,11 +18,14 @@ class BookingController extends Controller
                 'activity_id' => 'required|exists:activities,id',
                 'booking_date' => 'required|date',
                 'number_of_guests' => 'required|integer|min:1',
-                'is_open_to_group' => 'boolean',
             ]);
     
             $user = auth()->user();
-            $activity = Activity::findOrFail($request->activity_id);
+            $activity = Activity::with('user')->findOrFail($request->activity_id);
+
+            if (! $activity->isBookable()) {
+                return response()->json(['error' => 'Activity not available'], 404);
+            }
     
             $amount = $activity->is_free ? 0 : ($activity->price * $request->number_of_guests);
     
@@ -33,14 +34,16 @@ class BookingController extends Controller
                 'activity_id' => $activity->id,
                 'booking_date' => $request->booking_date,
                 'number_of_guests' => $request->number_of_guests,
-                'is_open_to_group' => $request->boolean('is_open_to_group', false),
                 'amount' => $amount,
                 'payment_status' => $activity->is_free ? 'paid' : 'unpaid',
                 'status' => $activity->price === 0 ? 'confirmed' : 'pending',
             ]);
-    
-            if ($booking->status === 'confirmed' && $booking->is_open_to_group) {
-                (new \App\Http\Controllers\Social\SocialMatchController)->checkAndNotifyMatch($booking);
+
+            $booking->load(['activity', 'user']);
+            NotificationService::notifyBookingRequest($booking);
+
+            if ($booking->status === 'confirmed') {
+                NotificationService::notifyBookingConfirmed($booking);
             }
     
             return response()->json($booking, 201);
@@ -102,6 +105,9 @@ class BookingController extends Controller
         }
 
         $booking->update(['status' => 'confirmed']);
+        $booking->load(['activity.user', 'user']);
+
+        NotificationService::notifyBookingConfirmed($booking);
 
         return response()->json([
             'message' => 'Booking confirmed successfully.',
@@ -129,6 +135,9 @@ class BookingController extends Controller
             'status'       => 'cancelled',
             'cancelled_at' => now(),
         ]);
+        $booking->load(['activity.user', 'user']);
+
+        NotificationService::notifyBookingCancelled($booking, $user->id);
 
         return response()->json([
             'message' => 'Booking cancelled successfully.',
@@ -137,37 +146,70 @@ class BookingController extends Controller
     }
     
     public function createPaymentIntent($id)
-    {
-        $user    = auth()->user();
-        $booking = Booking::where('user_id', $user->id)
-                        ->where('status', 'confirmed')
-                        ->where('payment_status', 'unpaid')
-                        ->findOrFail($id);
+{
+    $user    = auth()->user();
+    $booking = Booking::where('user_id', $user->id)
+                    ->where('status', 'confirmed')
+                    ->where('payment_status', 'unpaid')
+                    ->findOrFail($id);
 
-        if(!$booking) {
-            return response()->json(['error' => 'no booking founded.'], 403);
+    if ($booking->amount <= 0) {
+        return response()->json(['error' => 'This booking does not require payment.'], 400);
+    }
+
+    \Stripe\Stripe::setApiKey(config('services.stripe.secret'));
+
+    if ($booking->stripe_payment_intent_id) {
+        $intent = \Stripe\PaymentIntent::retrieve($booking->stripe_payment_intent_id);
+        
+        if (in_array($intent->status, ['requires_payment_method', 'requires_confirmation', 'requires_action'])) {
+            return response()->json(['client_secret' => $intent->client_secret]);
+        }
+    }
+
+    $intent = \Stripe\PaymentIntent::create([
+        'amount'   => (int) round($booking->amount * 100),
+        'currency' => 'mad',
+        'metadata' => [
+            'booking_id'  => $booking->id,
+            'user_id'     => $user->id,
+            'activity_id' => $booking->activity_id,
+        ],
+    ]);
+
+    $booking->update(['stripe_payment_intent_id' => $intent->id]);
+
+    return response()->json(['client_secret' => $intent->client_secret]);
+}
+
+    public function syncPaymentStatus(Request $request, $id)
+    {
+        $user = auth()->user();
+        $booking = Booking::where('user_id', $user->id)->findOrFail($id);
+
+        if (!$booking->stripe_payment_intent_id) {
+            return response()->json(['error' => 'No payment intent found for this booking.'], 422);
         }
 
-        if ($booking->amount <= 0) {
-            return response()->json(['error' => 'This booking does not require payment.'], 400);
+        if ($request->filled('payment_intent_id') && $request->payment_intent_id !== $booking->stripe_payment_intent_id) {
+            return response()->json(['error' => 'Payment intent mismatch.'], 422);
         }
 
         \Stripe\Stripe::setApiKey(config('services.stripe.secret'));
+        $intent = \Stripe\PaymentIntent::retrieve($booking->stripe_payment_intent_id);
 
-        $intent = \Stripe\PaymentIntent::create([
-            'amount'   => (int) round($booking->amount * 100),
-            'currency' => 'mad',
-            'metadata' => [
-                'booking_id'  => $booking->id,
-                'user_id'     => $user->id,
-                'activity_id' => $booking->activity_id,
-            ],
-        ]);
+        if ($intent->status !== 'succeeded') {
+            return response()->json([
+                'error' => 'Payment has not completed yet.',
+                'payment_status' => $intent->status,
+            ], 422);
+        }
 
-        $booking->update(['stripe_payment_intent_id' => $intent->id]);
+        $this->markBookingAsPaid($booking, $intent);
 
         return response()->json([
-            'client_secret' => $intent->client_secret,
+            'message' => 'Payment synchronized successfully.',
+            'booking' => $booking->fresh(['activity']),
         ]);
     }
 
@@ -182,6 +224,11 @@ class BookingController extends Controller
                 $payload, $sig, config('services.stripe.webhook_secret')
             );
         } catch (\Exception $e) {
+            \Log::error('Stripe Webhook signature verification failed', [
+                'error' => $e->getMessage(),
+                'payload' => $payload,
+                'signature' => $sig
+            ]);
             return response()->json(['error' => $e->getMessage()], 400);
         }
 
@@ -192,14 +239,30 @@ class BookingController extends Controller
             $booking = Booking::where('stripe_payment_intent_id', $intent->id)->first();
 
             if ($booking) {
-                $booking->update([
-                    'status'           => 'confirmed',
-                    'payment_status'   => 'paid',
-                    'stripe_charge_id' => $intent->latest_charge,
+                $paymentMethod = $intent->payment_method_types[0] ?? 'stripe';
+                $this->markBookingAsPaid($booking, $intent);
+
+                \Log::info('Booking payment updated successfully', [
+                    'booking_id' => $booking->id,
+                    'payment_intent' => $intent->id,
+                    'payment_method' => $paymentMethod
                 ]);
 
-                if ($booking->is_open_to_group) {
-                    (new \App\Http\Controllers\Social\SocialMatchController)->checkAndNotifyMatch($booking);
+
+            } else {
+                $reservation = Reservation::where('stripe_payment_intent_id', $intent->id)->first();
+
+                if ($reservation) {
+                    $paymentMethod = $intent->payment_method_types[0] ?? 'stripe';
+                    $this->markReservationAsPaid($reservation, $intent);
+
+                    \Log::info('Reservation payment updated successfully', [
+                        'reservation_id' => $reservation->id,
+                        'payment_intent' => $intent->id,
+                        'payment_method' => $paymentMethod,
+                    ]);
+                } else {
+                    \Log::warning('No payable entity found for payment intent', ['intent_id' => $intent->id]);
                 }
             }
         }
@@ -209,49 +272,46 @@ class BookingController extends Controller
             $booking = Booking::where('stripe_payment_intent_id', $intent->id)->first();
             if ($booking) {
                 $booking->update(['payment_status' => 'unpaid']);
+                \Log::warning('Booking payment failed', ['booking_id' => $booking->id, 'error' => $intent->last_payment_error->message ?? 'Unknown error']);
+            } else {
+                $reservation = Reservation::where('stripe_payment_intent_id', $intent->id)->first();
+
+                if ($reservation) {
+                    $reservation->update(['payment_status' => 'unpaid']);
+                    \Log::warning('Reservation payment failed', ['reservation_id' => $reservation->id, 'error' => $intent->last_payment_error->message ?? 'Unknown error']);
+                }
             }
         }
 
         return response()->json(['received' => true]);
     }
 
-
-    private function triggerSocialMatching(Booking $newBooking)
+    private function markBookingAsPaid(Booking $booking, object $intent): void
     {
-        $newBooking->load('activity');
+        $paymentMethod = $intent->payment_method_types[0] ?? 'stripe';
+        $chargeId = is_string($intent->latest_charge) && $intent->latest_charge !== ''
+            ? $intent->latest_charge
+            : $intent->id;
 
-        $matches = Booking::where('activity_id', $newBooking->activity_id)
-            ->where('user_id', '!=', $newBooking->user_id)
-            ->where('is_open_to_group', true)
-            ->where('status', 'confirmed')
-            ->get();
+        $booking->update([
+            'payment_status' => 'paid',
+            'payment_method' => $paymentMethod,
+            'stripe_charge_id' => $chargeId,
+        ]);
+    }
 
-        foreach ($matches as $match) {
-            $requestData = [
-                'activity_id' => $newBooking->activity_id,
-                'sender_id'   => $newBooking->user_id,
-                'receiver_id' => $match->user_id,
-            ];
+    private function markReservationAsPaid(Reservation $reservation, object $intent): void
+    {
+        $paymentMethod = $intent->payment_method_types[0] ?? 'stripe';
+        $chargeId = is_string($intent->latest_charge) && $intent->latest_charge !== ''
+            ? $intent->latest_charge
+            : $intent->id;
 
-            $sharedRequest = \DB::table('shared_booking_requests')
-                ->where($requestData)
-                ->first();
-
-            if (!$sharedRequest) {
-                $requestId = \DB::table('shared_booking_requests')->insertGetId(array_merge($requestData, [
-                    'status'     => 'pending',
-                    'created_at' => now(),
-                    'updated_at' => now(),
-                ]));
-            } else {
-                \DB::table('shared_booking_requests')->where('id', $sharedRequest->id)->update([
-                    'status'     => 'pending',
-                    'updated_at' => now(),
-                ]);
-                $requestId = $sharedRequest->id;
-            }
-
-            broadcast(new \App\Events\SocialMatchFound($match->user_id, $newBooking->activity->title, $requestId));
-        }
+        $reservation->update([
+            'payment_status' => 'paid',
+            'payment_method' => $paymentMethod,
+            'stripe_charge_id' => $chargeId,
+            'stripe_payment_intent_id' => $intent->id,
+        ]);
     }
 }

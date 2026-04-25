@@ -10,15 +10,11 @@ class Booking extends Model
 {
     use HasFactory;
 
-    /**
-     * The attributes that are mass assignable.
-     */
     protected $fillable = [
         'user_id',
         'activity_id',
         'booking_date',
         'number_of_guests',
-        'is_open_to_group',
         'status',
         'booked_at',
         'cancelled_at',
@@ -29,9 +25,6 @@ class Booking extends Model
         'stripe_charge_id',
     ];
 
-    /**
-     * The attributes that should be cast.
-     */
     protected $casts = [
         'booking_date' => 'datetime',
         'booked_at' => 'datetime',
@@ -39,23 +32,15 @@ class Booking extends Model
         'amount' => 'decimal:2',
     ];
 
-    /**
-     * Get the user who made the booking.
-     */
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
 
-    /**
-     * Get the activity being booked.
-     */
     public function activity(): BelongsTo
     {
         return $this->belongsTo(Activity::class);
     }
 
-    public function scopeSocialReady($query) {
-        return $query->where('is_open_to_group', true)->where('status', 'confirmed');
-    }
+
 }

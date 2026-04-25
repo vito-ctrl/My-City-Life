@@ -16,25 +16,16 @@ class Comment extends Model
         'body',
     ];
 
-    /**
-     * Get the user who made the comment.
-     */
     public function user()
     {
         return $this->belongsTo(User::class);
     }
 
-    /**
-     * Get the activity being commented on.
-     */
     public function activity()
     {
         return $this->belongsTo(Activity::class);
     }
 
-    /**
-     * Get the business being commented on.
-     */
     public function business()
     {
         return $this->belongsTo(Business::class);

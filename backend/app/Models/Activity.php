@@ -22,7 +22,18 @@ class Activity extends Model
         'duration',
         'requirements',
         'max_capacity',
+        'is_approved',
+        'approved_at',
+        'approved_by',
     ];
+
+    protected function casts(): array
+    {
+        return [
+            'is_approved' => 'boolean',
+            'approved_at' => 'datetime',
+        ];
+    }
 
     public function user() {
         return $this->belongsTo(User::class);
@@ -55,5 +66,34 @@ class Activity extends Model
     public function bookings()
     {
         return $this->hasMany(Booking::class);
+    }
+
+    public function scopePubliclyVisible($query)
+    {
+        return $query
+            ->where('is_approved', true)
+            ->whereHas('user', fn ($userQuery) => $userQuery->whereNull('banned_at'));
+    }
+
+    public function isVisibleTo(?User $viewer): bool
+    {
+        $owner = $this->relationLoaded('user') ? $this->user : $this->user()->first();
+
+        if ($this->is_approved && $owner && ! $owner->isBanned()) {
+            return true;
+        }
+
+        if (! $viewer) {
+            return false;
+        }
+
+        return $viewer->isAdmin() || $viewer->id === $this->user_id;
+    }
+
+    public function isBookable(): bool
+    {
+        $owner = $this->relationLoaded('user') ? $this->user : $this->user()->first();
+
+        return $this->is_approved && $owner && ! $owner->isBanned();
     }
 }

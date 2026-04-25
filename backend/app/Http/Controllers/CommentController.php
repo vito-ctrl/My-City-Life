@@ -11,9 +11,6 @@ use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 class CommentController extends Controller
 {
-    /**
-     * Get comments for a specific model instance.
-     */
     public function index($type, $id)
     {
         try {
@@ -23,6 +20,8 @@ class CommentController extends Controller
                 ->with('user:id,name,image')
                 ->latest()
                 ->get();
+
+            $comments->transform(fn ($comment) => $this->formatComment($comment));
                 
             return response()->json($comments);
         } catch (ModelNotFoundException $e) {
@@ -32,9 +31,6 @@ class CommentController extends Controller
         }
     }
 
-    /**
-     * Store a new comment.
-     */
     public function store(Request $request, $type, $id)
     {
         try {
@@ -43,7 +39,7 @@ class CommentController extends Controller
             ]);
 
             $user = JWTAuth::parseToken()->authenticate();
-            $model = $this->getModelInstance($type, $id);
+            $model = $this->getModelInstance($type, $id, $user);
             $fkColumn = $this->getForeignKeyColumn($type);
 
             $comment = $model->comments()->create([
@@ -52,8 +48,8 @@ class CommentController extends Controller
                 'body' => $request->body
             ]);
 
-            // Load user data to return
             $comment->load('user:id,name,image');
+            $comment = $this->formatComment($comment);
 
             return response()->json([
                 'message' => 'Comment posted successfully',
@@ -67,14 +63,11 @@ class CommentController extends Controller
         }
     }
 
-    /**
-     * Delete a comment.
-     */
     public function destroy($type, $id, $commentId)
     {
         try {
             $user = JWTAuth::parseToken()->authenticate();
-            $model = $this->getModelInstance($type, $id);
+            $model = $this->getModelInstance($type, $id, $user);
 
             $comment = $model->comments()->findOrFail($commentId);
 
@@ -85,24 +78,31 @@ class CommentController extends Controller
             $comment->delete();
 
             return response()->json(['message' => 'Comment deleted successfully']);
+        } catch (ModelNotFoundException $e) {
+            return response()->json(['error' => 'Resource not found'], 404);
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage()], 500);
         }
     }
 
-    /**
-     * Helper to resolve standard plural resource types to literal Eloquent models.
-     */
-    private function getModelInstance($type, $id)
+    private function getModelInstance($type, $id, $viewer = null)
     {
         switch (strtolower($type)) {
             case 'activities':
-                return Activity::findOrFail($id);
+                $model = Activity::with('user')->findOrFail($id);
+                break;
             case 'businesses':
-                return Business::findOrFail($id);
+                $model = Business::with('user')->findOrFail($id);
+                break;
             default:
                 throw new \Exception("Unsupported commentable type: {$type}");
         }
+
+        if (! $model->isVisibleTo($viewer)) {
+            throw new ModelNotFoundException();
+        }
+
+        return $model;
     }
 
     private function getForeignKeyColumn($type)
@@ -115,5 +115,29 @@ class CommentController extends Controller
             default:
                 throw new \Exception("Unsupported commentable type: {$type}");
         }
+    }
+
+    private function formatComment(Comment $comment): Comment
+    {
+        if ($comment->relationLoaded('user') && $comment->user) {
+            $comment->user->image = $this->formatImageUrl($comment->user->image);
+        }
+
+        return $comment;
+    }
+
+    private function formatImageUrl(?string $path): ?string
+    {
+        if (!$path) {
+            return null;
+        }
+
+        if (str_starts_with($path, 'http://') || str_starts_with($path, 'https://')) {
+            return $path;
+        }
+
+        $normalizedPath = preg_replace('#^/?storage/#', '', $path);
+
+        return asset('storage/' . ltrim($normalizedPath, '/'));
     }
 }

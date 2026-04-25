@@ -15,8 +15,7 @@ return [
     |
     */
 
-    'default' => env('BROADCAST_CONNECTION', 'null'),
-
+    'default' => env('BROADCAST_CONNECTION', env('BROADCAST_DRIVER', 'reverb')),
     /*
     |--------------------------------------------------------------------------
     | Broadcast Connections
@@ -27,6 +26,7 @@ return [
     | each available type of connection are provided inside this array.
     |
     */
+
 
     'connections' => [
 

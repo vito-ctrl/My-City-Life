@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Eye, EyeOff, ArrowRight, ArrowLeft } from 'lucide-react';
 import Riad from '../../assets/images/Morocca_Riad_with_Mosaic.jpg'
 import { useNavigate } from 'react-router-dom';
+import { setAuthSession } from '../../utils/auth';
 
 const Login = () => {
   const navigate = useNavigate();
@@ -39,9 +40,7 @@ const Login = () => {
 
       const data = await res.json();
       if(res.ok){
-        localStorage.setItem("token", data.token);
-        // Save the user object so we can read the role in protected routes
-        localStorage.setItem("user", JSON.stringify(data.user));
+        setAuthSession({ token: data.token, user: data.user });
         navigate('/');
       }else{
         console.error("there is a problem in response : ", res);

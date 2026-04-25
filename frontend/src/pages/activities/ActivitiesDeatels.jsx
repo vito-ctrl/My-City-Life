@@ -10,6 +10,8 @@ import { getComments, postComment } from '../../services/comment';
 import { Paiment } from '../../components/layout/paiment/Paiment';
 import BookingToastNotification, { showBookingToast } from '../../components/notifications/BookingNotification';
 
+const API_BASE_URL = 'http://127.0.0.1:8000';
+
 const ActivitiesDetails = () => {
   const { type, id } = useParams();
   const navigate     = useNavigate();
@@ -34,20 +36,35 @@ const ActivitiesDetails = () => {
     const fetchDetails = async () => {
       try {
         setLoading(true);
-        const res  = await fetch(`http://127.0.0.1:8000/api/${type}/${id}`);
-        const json = await res.json();
-        setItem(json.data);
-        if (json.data?.image_urls?.length > 0) setMainImage(json.data.image_urls[0]);
-        const commentsData = await getComments(type, id);
-        setFetchcomments(commentsData || []);
+        const headers = token ? { Authorization: `Bearer ${token}` } : {};
+        const commentsPromise = getComments(type, id)
+          .then((commentsData) => {
+            setFetchcomments(commentsData || []);
+          })
+          .catch((error) => {
+            console.error('Comments fetch error:', error);
+          });
+
+        const detailsRes = await fetch(`${API_BASE_URL}/api/${type}/${id}`, { headers });
+
+        const json = await detailsRes.json();
+        const details = json.data;
+
+        setItem(details);
+        setMainImage(details?.image_urls?.[0] ?? '');
+        setLiked(Boolean(details?.liked));
+        setLikesCount(Number(details?.likes_count ?? 0));
+        setFavorited(Boolean(details?.favorited));
+        setLoading(false);
+
+        await commentsPromise;
       } catch (error) {
         console.error('Fetch error:', error);
-      } finally {
         setLoading(false);
       }
     };
     fetchDetails();
-  }, [type, id]);
+  }, [type, id, token]);
 
   useEffect(() => {
     if (type !== 'activities') return; 
@@ -55,11 +72,11 @@ const ActivitiesDetails = () => {
     const seenKeys = new Set();
 
     const poll = async () => {
-      const token = localStorage.getItem('token');
-      if (!token) return;
+        const token = localStorage.getItem('token');
+        if (!token) return;
 
       try {
-        const res  = await fetch('http://127.0.0.1:8000/api/bookings', {
+        const res  = await fetch(`${API_BASE_URL}/api/bookings`, {
           headers: { Authorization: `Bearer ${token}` }
         });
         const data = await res.json();
@@ -113,13 +130,14 @@ const ActivitiesDetails = () => {
   const handleLike = async () => {
     if (!token) return;
     try {
-      const res = await fetch(`http://127.0.0.1:8000/api/${type}/${id}/like`, {
+      const res = await fetch(`${API_BASE_URL}/api/like/${type}/${id}`, {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}` },
       });
       if (res.ok) {
-        setLiked(prev => !prev);
-        setLikesCount(prev => liked ? prev - 1 : prev + 1);
+        const data = await res.json();
+        setLiked(Boolean(data.liked));
+        setLikesCount(Number(data.likes_count ?? 0));
       }
     } catch (err) {
       console.error('Like error:', err);
@@ -129,12 +147,13 @@ const ActivitiesDetails = () => {
   const handleFavorite = async () => {
     if (!token) return;
     try {
-      const res = await fetch(`http://127.0.0.1:8000/api/${type}/${id}/favorite`, {
+      const res = await fetch(`${API_BASE_URL}/api/favorite/${type}/${id}`, {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}` },
       });
       if (res.ok) {
-        setFavorited(prev => !prev);
+        const data = await res.json();
+        setFavorited(Boolean(data.favorite));
       }
     } catch (err) {
       console.error('Favorite error:', err);

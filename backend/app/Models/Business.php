@@ -19,7 +19,22 @@ class Business extends Model
         'description',
         'image',
         'opening_hours',
+        'is_approved',
+        'approved_at',
+        'approved_by',
+        'banned_at',
+        'banned_reason',
+        'banned_by',
     ];
+
+    protected function casts(): array
+    {
+        return [
+            'is_approved' => 'boolean',
+            'approved_at' => 'datetime',
+            'banned_at' => 'datetime',
+        ];
+    }
 
     public function user()
     {
@@ -54,5 +69,43 @@ class Business extends Model
     public function reservableItems()
     {
         return $this->hasMany(ReservableItem::class);
+    }
+
+    public function scopePubliclyVisible($query)
+    {
+        return $query
+            ->where('is_approved', true)
+            ->whereNull('banned_at')
+            ->whereHas('user', fn ($userQuery) => $userQuery->whereNull('banned_at'));
+    }
+
+    public function isVisibleTo(?User $viewer): bool
+    {
+        $owner = $this->relationLoaded('user') ? $this->user : $this->user()->first();
+
+        if ($this->isOperational() && $owner) {
+            return true;
+        }
+
+        if (! $viewer) {
+            return false;
+        }
+
+        return $viewer->isAdmin() || $viewer->id === $this->user_id;
+    }
+
+    public function isBanned(): bool
+    {
+        return ! is_null($this->banned_at);
+    }
+
+    public function isOperational(): bool
+    {
+        $owner = $this->relationLoaded('user') ? $this->user : $this->user()->first();
+
+        return $this->is_approved
+            && ! $this->isBanned()
+            && $owner
+            && ! $owner->isBanned();
     }
 }

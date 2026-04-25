@@ -1,77 +1,117 @@
 import React, { useEffect, useState } from 'react';
-import { FiMapPin, FiArrowRight, FiHeart } from 'react-icons/fi';
+import { FiMapPin } from 'react-icons/fi';
 import { IoHeartOutline, IoHeartSharp } from "react-icons/io5"; 
 import { AiOutlineLike } from "react-icons/ai";
-import { getLikes } from '../../services/like';
-import { getFavorites } from '../../services/favorits';
 
+import { API_BASE_URL } from '../../utils/auth';
 
-const ActivityCard = ({ item, type , onClick }) => {
-  // const [likes, setLikes] = useState(0);
-  const [liked, setLiked] = useState(false);
+const FALLBACK_IMAGE = "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&q=80&w=800";
 
-  // const [Favorites, setFavorites] = useState(0);
-  const [favorited, setFavorited] = useState(false);
+const getImageUrl = (item) => {
+  if (Array.isArray(item.image_urls) && item.image_urls.length > 0) {
+    return item.image_urls[0];
+  }
+
+  if (typeof item.image === 'string') {
+    const trimmedImage = item.image.trim();
+
+    if (trimmedImage.startsWith('http://') || trimmedImage.startsWith('https://')) {
+      return trimmedImage;
+    }
+
+    try {
+      const parsedImages = JSON.parse(trimmedImage);
+      if (Array.isArray(parsedImages) && parsedImages.length > 0) {
+        const firstImage = parsedImages[0];
+        if (typeof firstImage === 'string' && firstImage.length > 0) {
+          if (firstImage.startsWith('http://') || firstImage.startsWith('https://')) {
+            return firstImage;
+          }
+
+          const normalizedImage = firstImage.replace(/^\/?storage\//, '');
+          return `${API_BASE_URL}/storage/${normalizedImage}`;
+        }
+      }
+    } catch (error) {
+      if (trimmedImage.length > 0) {
+        const normalizedImage = trimmedImage.replace(/^\/?storage\//, '');
+        return `${API_BASE_URL}/storage/${normalizedImage}`;
+      }
+    }
+  }
+
+  return FALLBACK_IMAGE;
+};
+
+const ActivityCard = ({ item, type , onClick, onFavoriteChange }) => {
+  const [liked, setLiked] = useState(Boolean(item.liked));
+  const [favorited, setFavorited] = useState(Boolean(item.favorited));
 
 
   const title = item.title || item.name;
   const description = item.description || item.type;
-  const image = item.image || "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&q=80&w=800";
+  const image = getImageUrl(item);
   
   const isFree = item.is_free === 1 || item.is_free === true;
-  const badgeText = type === 'activities' ? (isFree ? 'FREE' : `${item.price} MAD`) : 'businesses';
-  const badgeColor = isFree ? 'bg-green-500/90' : 'bg-orange-500/90';
+  const badgeText = type === 'activities'
+    ? (isFree ? 'FREE' : item.price ? `${item.price} MAD` : 'PAID')
+    : (item.type || 'Business');
+  const badgeColor = type === 'activities'
+    ? (isFree ? 'bg-green-500/90' : 'bg-orange-500/90')
+    : 'bg-sky-500/90';
 
   const token = localStorage.getItem('token');
   // console.log("token", token);
 
   useEffect(() => {
-    if (!token) return;
-
-    try {
-      const fetchLikes = async () => {
-        const data = await getLikes(type, item.id);
-        if (data) setLiked(data.liked);
-      };
-
-      const fetchFavoritesData = async () => {
-        const data = await getFavorites(type, item.id);
-        if (data) setFavorited(data.favorited);
-      };
-
-      fetchLikes();
-      fetchFavoritesData();
-    } catch (err) {
-      console.log("error in fetching interactions : ", err);
-    }
-  }, [item.id, type, token]);
+    setLiked(Boolean(item.liked));
+    setFavorited(Boolean(item.favorited));
+  }, [item.id, item.liked, item.favorited]);
 
   // Function to handle favorite click
   const handleFavorite = async(e) => {
     e.stopPropagation();
-    console.log(type);
-    
-    await fetch(`http://127.0.0.1:8000/api/favorite/${type}/${item.id}`, {
-      method: 'POST',
-      headers: {
-        'Authorization' : `Bearer ${token}`,
-      }
-    })
-    setFavorited(!favorited);
+    if (!token) return;
 
-  };
-
-  const handleLike = async(e) => {
-    e.stopPropagation();
-
-    try{
-      await fetch(`http://127.0.0.1:8000/api/like/${type}/${item.id}`, {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/favorite/${type}/${item.id}`, {
         method: 'POST',
         headers: {
           'Authorization' : `Bearer ${token}`,
         }
       });
-      setLiked(!liked);
+
+      if (!response.ok) {
+        throw new Error('Failed to update favorite');
+      }
+
+      const data = await response.json();
+      setFavorited(Boolean(data.favorite));
+      onFavoriteChange?.(Boolean(data.favorite), item);
+    } catch (err) {
+      console.error("favorite error : ", err);
+    }
+
+  };
+
+  const handleLike = async(e) => {
+    e.stopPropagation();
+    if (!token) return;
+
+    try{
+      const response = await fetch(`${API_BASE_URL}/api/like/${type}/${item.id}`, {
+        method: 'POST',
+        headers: {
+          'Authorization' : `Bearer ${token}`,
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to update like');
+      }
+
+      const data = await response.json();
+      setLiked(Boolean(data.liked));
     }catch(err){
       console.error("like error : ", err);
     }
@@ -98,7 +138,7 @@ const ActivityCard = ({ item, type , onClick }) => {
         <div className="space-y-2">
           <div className="flex items-center gap-2 text-orange-500 text-[10px] font-black tracking-widest uppercase">
             <FiMapPin />
-            <span>{item.location || 'City Center'}</span>
+            <span>{item.location || item.city || 'City Center'}</span>
           </div>
           <h3 className="text-xl font-bold text-white group-hover:text-orange-500 transition-colors">{title}</h3>
           <p className="text-white/40 text-sm leading-relaxed line-clamp-2">{description}</p>
@@ -132,7 +172,7 @@ const ActivityCard = ({ item, type , onClick }) => {
           </div>
         </div>
         : 
-        "none" }
+        null }
       </div>
     </div>
   );

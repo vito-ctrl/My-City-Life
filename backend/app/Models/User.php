@@ -20,7 +20,16 @@ use App\Models\Favorites;
 class User extends Authenticatable implements JWTSubject
 {
     protected $fillable = [
-        'name', 'email', 'role', 'date_of_birth', 'city', 'image', 'password'
+        'name',
+        'email',
+        'role',
+        'date_of_birth',
+        'city',
+        'image',
+        'password',
+        'banned_at',
+        'banned_reason',
+        'banned_by',
     ];
 
     protected $hidden = [
@@ -53,6 +62,7 @@ class User extends Authenticatable implements JWTSubject
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'banned_at' => 'datetime',
         ];
     }
 
@@ -75,7 +85,6 @@ class User extends Authenticatable implements JWTSubject
         return $this->hasOne(UserProfile::class);
     }
 
-    // role shecking
     public function isOrganizer()
     {
         return $this->role === 'Organizer';
@@ -93,18 +102,21 @@ class User extends Authenticatable implements JWTSubject
 
     public function isAdmin()
     {
-        return $this->role === 'admin';
+        return $this->role === 'admin' || $this->hasRole('admin');
+    }
+
+    public function isBanned(): bool
+    {
+        return ! is_null($this->banned_at);
     }
 
     public function favorites(){
         return $this->hasMany(Favorites::class);
     }
 
-    public function sharedRequests()
+    public function bannedBy()
     {
-        // Requests this user has sent or received
-        return $this->hasMany(SharedBookingRequest::class, 'sender_id')
-                    ->orWhere('receiver_id', $this->id);
+        return $this->belongsTo(self::class, 'banned_by');
     }
 
 }

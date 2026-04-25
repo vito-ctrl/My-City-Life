@@ -11,9 +11,9 @@ return new class extends Migration
         Schema::create('notifications', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained()->cascadeOnDelete();
-            $table->string('type'); // e.g., 'social_match', 'booking_confirmed'
+            $table->string('type'); 
             $table->text('content');
-            $table->json('data')->nullable(); // Additional data like vote_id or chat_slug
+            $table->json('data')->nullable();
             $table->boolean('is_read')->default(false);
             $table->timestamps();
         });

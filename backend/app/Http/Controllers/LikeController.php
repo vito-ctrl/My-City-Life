@@ -11,17 +11,12 @@ use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 class LikeController extends Controller
 {
-    /**
-     * Toggle a like on a specific model instance.
-     * 
-     * Expects parameters: {type} (activities or businesses), {id}
-     */
     public function toggle(Request $request, $type, $id)
     {
         try {
             $user = auth()->user();
 
-            $model = $this->getModelInstance($type, $id);
+            $model = $this->getModelInstance($type, $id, $user);
             $fkColumn = $this->getForeignKeyColumn($type);
 
             $like = $model->likes()->where('user_id', $user->id)->first();
@@ -31,7 +26,8 @@ class LikeController extends Controller
                 $like->delete();
                 return response()->json([
                     'message' => 'Unliked successfully',
-                    'liked' => false
+                    'liked' => false,
+                    'likes_count' => $model->likes()->count(),
                 ]);
             } else {
 
@@ -41,7 +37,8 @@ class LikeController extends Controller
                 ]);
                 return response()->json([
                     'message' => 'Liked successfully',
-                    'liked' => true
+                    'liked' => true,
+                    'likes_count' => $model->likes()->count(),
                 ]);
             }
 
@@ -53,16 +50,24 @@ class LikeController extends Controller
     }
 
     
-    private function getModelInstance($type, $id)
+    private function getModelInstance($type, $id, $viewer = null)
     {
         switch (strtolower($type)) {
             case 'activities':
-                return Activity::findOrFail($id);
+                $model = Activity::with('user')->findOrFail($id);
+                break;
             case 'businesses':
-                return Business::findOrFail($id);
+                $model = Business::with('user')->findOrFail($id);
+                break;
             default:
                 throw new \Exception("Unsupported likable type.");
         }
+
+        if (! $model->isVisibleTo($viewer)) {
+            throw new ModelNotFoundException();
+        }
+
+        return $model;
     }
 
      private function getForeignKeyColumn($type)
@@ -82,7 +87,7 @@ class LikeController extends Controller
         try {
             $user = auth()->user();
 
-            $model = $this->getModelInstance($type, $id);
+            $model = $this->getModelInstance($type, $id, $user);
 
             $likesCount = $model->likes()->count();
 

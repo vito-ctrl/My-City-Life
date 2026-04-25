@@ -15,25 +15,16 @@ class Like extends Model
         'business_id',
     ];
 
-    /**
-     * Get the user who made the like.
-     */
     public function user()
     {
         return $this->belongsTo(User::class);
     }
 
-    /**
-     * Get the activity being liked.
-     */
     public function activity()
     {
         return $this->belongsTo(Activity::class);
     }
 
-    /**
-     * Get the business being liked.
-     */
     public function business()
     {
         return $this->belongsTo(Business::class);

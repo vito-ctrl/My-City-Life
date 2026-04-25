@@ -15,7 +15,7 @@ class FavoritesController extends Controller
         try{
             $user = auth()->user();
 
-            $model = $this->getModelInstance($type, $id);
+            $model = $this->getModelInstance($type, $id, $user);
             $fkColumn = $this->getForeignKeyColumn($type);
 
             $favorite = $model->favorites()->where('user_id', $user->id)->first();
@@ -25,7 +25,8 @@ class FavoritesController extends Controller
                 $favorite->delete();
                 return response()->json([
                     'message' => 'Unfavorite successfully',
-                    'favorite' => false
+                    'favorite' => false,
+                    'favorites_count' => $model->favorites()->count(),
                 ]);
             } else {
 
@@ -35,7 +36,8 @@ class FavoritesController extends Controller
                 ]);
                 return response()->json([
                     'message' => 'favorite successfully',
-                    'favorite' => true
+                    'favorite' => true,
+                    'favorites_count' => $model->favorites()->count(),
                 ]);
             }
 
@@ -46,16 +48,24 @@ class FavoritesController extends Controller
         }
     }
 
-    private function getModelInstance($type, $id)
+    private function getModelInstance($type, $id, $viewer = null)
     {
         switch (strtolower($type)) {
             case 'activities':
-                return Activity::findOrFail($id);
+                $model = Activity::with('user')->findOrFail($id);
+                break;
             case 'businesses':
-                return Business::findOrFail($id);
+                $model = Business::with('user')->findOrFail($id);
+                break;
             default:
                 throw new \Exception("Unsupported likable type.");
         }
+
+        if (! $model->isVisibleTo($viewer)) {
+            throw new ModelNotFoundException();
+        }
+
+        return $model;
     }
 
     private function getForeignKeyColumn($type)
@@ -74,7 +84,7 @@ class FavoritesController extends Controller
     {
         try {
             $user = auth()->user();
-            $model = $this->getModelInstance($type, $id);
+            $model = $this->getModelInstance($type, $id, $user);
 
             $favoritesCount = $model->favorites()->count();
 
@@ -102,19 +112,57 @@ class FavoritesController extends Controller
             if (strtolower($type) === 'activities') {
                 $favorites = Activity::whereHas('favorites', function ($query) use ($user) {
                     $query->where('user_id', $user->id);
-                })->get();
+                })
+                    ->publiclyVisible()
+                    ->withCount(['likes', 'favorites'])
+                    ->withExists([
+                        'likes as liked' => fn ($likesQuery) => $likesQuery->where('user_id', $user->id),
+                    ])
+                    ->get();
             } elseif (strtolower($type) === 'businesses') {
                 $favorites = Business::whereHas('favorites', function ($query) use ($user) {
                     $query->where('user_id', $user->id);
-                })->get();
+                })
+                    ->publiclyVisible()
+                    ->withCount(['likes', 'favorites'])
+                    ->withExists([
+                        'likes as liked' => fn ($likesQuery) => $likesQuery->where('user_id', $user->id),
+                    ])
+                    ->get();
             } else {
                 throw new \Exception("Unsupported favorite type.");
             }
+
+            $favorites->transform(fn ($favorite) => $this->appendMeta($favorite, $user));
 
             return response()->json($favorites);
 
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage()], 500);
         }
+    }
+
+    private function appendMeta($model, $user)
+    {
+        $images = json_decode($model->image, true) ?? [];
+        $model->image_urls = array_map(function ($path) {
+            if (!$path) {
+                return null;
+            }
+
+            if (str_starts_with($path, 'http://') || str_starts_with($path, 'https://')) {
+                return $path;
+            }
+
+            $normalizedPath = preg_replace('#^/?storage/#', '', $path);
+
+            return asset('storage/' . ltrim($normalizedPath, '/'));
+        }, $images);
+
+        $model->image_urls = array_values(array_filter($model->image_urls));
+        $model->favorited = true;
+        $model->liked = (bool) ($model->liked ?? false);
+
+        return $model;
     }
 }

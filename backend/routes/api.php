@@ -4,6 +4,7 @@ use App\Http\Controllers\Auth\AuthController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\SocialLoginController;
 use App\Http\Controllers\Auth\PasswordResetController;
+use App\Http\Controllers\Admin\AdminModerationController;
 use App\Http\Controllers\Activity\ActivityController;
 use App\Http\Controllers\Business\BusinessController;
 use App\Http\Controllers\Booking\BookingController;
@@ -12,9 +13,6 @@ use App\Http\Controllers\CommentController;
 use App\Http\Controllers\Statistic\StatisticController;
 use App\Http\Controllers\FavoritesController;
 use App\Http\Controllers\Organizer\OrganizerController;
-use App\Http\Controllers\Social\BookingChatController;
-use App\Http\Controllers\Social\SocialMatchController;
-use App\Http\Controllers\Social\SupportChatController;
 use App\Http\Controllers\Business\BusinesReservationController;
 
 // ── Auth (Public) ─────────────────────────────────────────────────────────────
@@ -41,7 +39,7 @@ Route::get('/comments/{type}/{id}', [CommentController::class, 'index']);
 
 
 // ── Protected Routes (Auth required) ─────────────────────────────────────────
-Route::middleware('auth:api')->group(function () {
+Route::middleware(['auth:api', 'not_banned'])->group(function () {
     
     Route::get ('/profile', [AuthController::class, 'getUser']);
 
@@ -76,6 +74,7 @@ Route::middleware('auth:api')->group(function () {
         Route::patch('{id}/cancel', [BookingController::class, 'cancel']);
         Route::patch('{id}/confirm', [BookingController::class, 'confirm']);
         Route::post('{id}/payment-intent', [BookingController::class, 'createPaymentIntent']);
+        Route::post('{id}/payment-sync', [BookingController::class, 'syncPaymentStatus']);
     });
 
     // statistics
@@ -88,6 +87,9 @@ Route::middleware('auth:api')->group(function () {
     // reservation 
     Route::post('/reservation',   [BusinesReservationController::class, 'StoreReservation']);
     Route::get('/reservationItem/{id}',   [BusinesReservationController::class, 'GetReservationItems']);
+    Route::get('/reservations',   [BusinesReservationController::class, 'indexReservation']);
+    Route::post('/reservations/{id}/payment-intent', [BusinesReservationController::class, 'createPaymentIntent']);
+    Route::post('/reservations/{id}/payment-sync', [BusinesReservationController::class, 'syncPaymentStatus']);
     
     // ── Organizer Dashboard ───────────────────────────────────────────────────
     Route::prefix('organizer')->group(function () {
@@ -113,21 +115,22 @@ Route::middleware('auth:api')->group(function () {
     Route::get('/notifications/unread-count', [App\Http\Controllers\NotificationController::class, 'unreadCount']);
     Route::post('/notifications/{id}/read',   [App\Http\Controllers\NotificationController::class, 'markAsRead']);
 
-    Route::prefix('social')->group(function () {
-        // ── Social Match (user ↔ user) ────────────────────────────────────────
-        Route::get('/pending',          [SocialMatchController::class, 'pending']);
-        Route::post('/vote',            [SocialMatchController::class, 'vote']);
-    
-        // ── Chat Rooms (shared: works for both social + support) ──────────────
-        Route::get('/chats',                        [BookingChatController::class, 'index']);
-        Route::get('/chats/{slug}',                 [BookingChatController::class, 'show']);
-        Route::post('/chats/{slug}/message',        [BookingChatController::class, 'sendMessage']);
-    
-        // ── Support Chat (owner ↔ user) ───────────────────────────────────────
-        Route::post('/support/chats',          [SupportChatController::class, 'openChat']);
-        Route::get('/support/chats',           [SupportChatController::class, 'index']);
+    // Admin moderation
+    Route::prefix('admin')->middleware('admin')->group(function () {
+        Route::get('/activities/pending', [AdminModerationController::class, 'pendingActivities']);
+        Route::patch('/activities/{activity}/approve', [AdminModerationController::class, 'approveActivity']);
+
+        Route::get('/businesses/pending', [AdminModerationController::class, 'pendingBusinesses']);
+        Route::patch('/businesses/{business}/approve', [AdminModerationController::class, 'approveBusiness']);
+        Route::patch('/businesses/{business}/ban', [AdminModerationController::class, 'banBusiness']);
+        Route::patch('/businesses/{business}/unban', [AdminModerationController::class, 'unbanBusiness']);
+
+        Route::patch('/users/{user}/ban', [AdminModerationController::class, 'banUser']);
+        Route::patch('/users/{user}/unban', [AdminModerationController::class, 'unbanUser']);
     });
+
 });
 
 // ── Stripe Webhook (No auth — Stripe calls this directly) ─────────────────────
-Route::post('stripe/webhook', [BookingController::class, 'webhook']);
+Route::post('stripe/webhook', [BookingController::class, 'webhook'])
+    ->withoutMiddleware(['auth:api', \Illuminate\Auth\Middleware\Authenticate::class]);

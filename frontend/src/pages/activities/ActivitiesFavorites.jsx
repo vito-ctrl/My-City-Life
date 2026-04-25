@@ -3,22 +3,23 @@ import { useNavigate } from 'react-router-dom';
 import ActivityCard from '../../components/ui/ActivityCard';
 import Header from '../../components/layout/Header';
 import { FiHeart, FiArrowLeft } from 'react-icons/fi'; 
+import { fetchAllFavorites } from '../../services/favorites';
 
 const ActivitiesFavorites = () => {
     const navigate = useNavigate();
-    const [activities, setActivities] = useState([]); 
+    const [favorites, setFavorites] = useState({ activities: [], businesses: [] }); 
+    const [activeTab, setActiveTab] = useState('activities');
     const [loading, setLoading] = useState(true);
-    const token = localStorage.getItem('token');
 
     useEffect(() => {
         const fetchFavoriteActivity = async () => {
             try {
-                const res = await fetch('http://127.0.0.1:8000/api/favorites/activities/all', {
-                    method: 'GET',
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
-                const data = await res.json();
-                setActivities(data);
+                const data = await fetchAllFavorites();
+                setFavorites(data);
+
+                if (data.activities.length === 0 && data.businesses.length > 0) {
+                    setActiveTab('businesses');
+                }
             } catch (err) {
                 console.error("Error fetching favorites:", err);
             } finally {
@@ -26,7 +27,21 @@ const ActivitiesFavorites = () => {
             }
         };
         fetchFavoriteActivity();
-    }, [token]);
+    }, []);
+
+    const activeItems = favorites[activeTab];
+    const totalFavorites = favorites.activities.length + favorites.businesses.length;
+
+    const handleFavoriteChange = (type, itemId, isFavorited) => {
+        if (isFavorited) {
+            return;
+        }
+
+        setFavorites((currentFavorites) => ({
+            ...currentFavorites,
+            [type]: currentFavorites[type].filter((entry) => entry.id !== itemId),
+        }));
+    };
 
     return (
         <div className="min-h-screen bg-[#0a0a0a]">
@@ -43,6 +58,9 @@ const ActivitiesFavorites = () => {
                             <h2 className="text-5xl font-black text-white leading-tight italic uppercase">
                                 Your <span className="text-orange-500">Favorites</span>
                             </h2>
+                            <p className="text-sm text-white/40">
+                                {totalFavorites} saved {totalFavorites === 1 ? 'place' : 'places'} ready for your next plan.
+                            </p>
                         </div>
                         <button 
                             onClick={() => navigate('/')}
@@ -52,20 +70,44 @@ const ActivitiesFavorites = () => {
                         </button>
                     </div>
 
+                    <div className="mb-10 flex flex-wrap gap-3">
+                        <button
+                            onClick={() => setActiveTab('activities')}
+                            className={`rounded-full px-5 py-3 text-[11px] font-black uppercase tracking-widest transition-all ${
+                                activeTab === 'activities'
+                                    ? 'bg-orange-500 text-white'
+                                    : 'bg-white/5 text-white/70 hover:bg-white/10'
+                            }`}
+                        >
+                            Activities ({favorites.activities.length})
+                        </button>
+                        <button
+                            onClick={() => setActiveTab('businesses')}
+                            className={`rounded-full px-5 py-3 text-[11px] font-black uppercase tracking-widest transition-all ${
+                                activeTab === 'businesses'
+                                    ? 'bg-orange-500 text-white'
+                                    : 'bg-white/5 text-white/70 hover:bg-white/10'
+                            }`}
+                        >
+                            Businesses ({favorites.businesses.length})
+                        </button>
+                    </div>
+
                     {loading ? (
                         <div className="flex items-center justify-center h-64">
                             <div className="text-white/20 font-black animate-pulse tracking-[0.2em] uppercase italic text-xl">
                                 Loading your discoveries...
                             </div>
                         </div>
-                    ) : activities.length > 0 ? (
+                    ) : activeItems.length > 0 ? (
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
-                            {activities.map((e) => (
+                            {activeItems.map((item) => (
                                 <ActivityCard
-                                    key={e.id} 
-                                    item={e} 
-                                    type="activities" 
-                                    onClick={() => navigate(`/activities/${e.id}`)} 
+                                    key={`${activeTab}-${item.id}`} 
+                                    item={item} 
+                                    type={activeTab}
+                                    onFavoriteChange={(isFavorited) => handleFavoriteChange(activeTab, item.id, isFavorited)}
+                                    onClick={() => navigate(activeTab === 'activities' ? `/activities/${item.id}` : `/organizer/details/${item.id}`)} 
                                 />
                             ))}
                         </div>
@@ -77,14 +119,16 @@ const ActivitiesFavorites = () => {
                             <div className="space-y-2">
                                 <h3 className="text-2xl font-bold text-white italic">Nothing saved yet</h3>
                                 <p className="text-white/40 text-sm max-w-xs mx-auto">
-                                    Start exploring your city and save the moments that matter most to you.
+                                    {activeTab === 'activities'
+                                        ? 'Start exploring your city and save the moments that matter most to you.'
+                                        : 'Save the businesses you want to revisit so your favorite spots stay one tap away.'}
                                 </p>
                             </div>
                             <button 
                                 onClick={() => navigate('/')}
                                 className="bg-orange-500 text-white px-10 py-4 rounded-full font-black text-[11px] uppercase tracking-widest hover:bg-orange-600 transition-all shadow-xl shadow-orange-500/20"
                             >
-                                Discover Activities
+                                Discover {activeTab === 'activities' ? 'Activities' : 'Businesses'}
                             </button>
                         </div>
                     )}

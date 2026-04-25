@@ -1,11 +1,13 @@
+import { API_BASE_URL, getStoredToken } from '../../utils/auth';
+
 export const StoreReservationItem = async (data, businessId) => {
     try {
-        const res = await fetch(`http://127.0.0.1:8000/api/organizer/reservation/${businessId}`, {
+        const res = await fetch(`${API_BASE_URL}/api/organizer/reservation/${businessId}`, {
             method : 'POST',
             headers : {
                 'Accept' : 'application/json',
                 'Content-Type' : 'application/json',
-                'Authorization' : `Bearer ${localStorage.getItem('token')}`
+                'Authorization' : `Bearer ${getStoredToken()}`
             },
             body : JSON.stringify(data)
         })
@@ -18,12 +20,12 @@ export const StoreReservationItem = async (data, businessId) => {
 
 export const Reservation = async (data) => {
     try {
-        await fetch(`http://127.0.0.1:8000/api/reservation`, {
+        const res = await fetch(`${API_BASE_URL}/api/reservation`, {
             method : 'POST',
             headers : {
                 'Accept' : 'application/json',
                 'Content-Type' : 'application/json',
-                'Authorization' : `Bearer ${localStorage.getItem('token')}`
+                'Authorization' : `Bearer ${getStoredToken()}`
             },
             body : JSON.stringify(data)
         })
@@ -36,11 +38,10 @@ export const Reservation = async (data) => {
 }
 
 export const GetReservations = async (businessId) => {
-    console.log("hi");
     try {
-        const res = await fetch(`http://127.0.0.1:8000/api/organizer/reservation/${businessId}`, {
+        const res = await fetch(`${API_BASE_URL}/api/organizer/reservation/${businessId}`, {
             method : 'GET',
-            headers : {'Authorization' : `Bearer ${localStorage.getItem('token')}`},
+            headers : {'Authorization' : `Bearer ${getStoredToken()}`},
         })
 
         const response = await res.json();
@@ -51,11 +52,10 @@ export const GetReservations = async (businessId) => {
 }
 
 export const GetReservationItem = async (id) => {
-    console.log("sjbha fsd fs hsg fshd ");
     try {
-        const res = await fetch(`http://127.0.0.1:8000/api/reservationItem/${id}`, {
+        const res = await fetch(`${API_BASE_URL}/api/reservationItem/${id}`, {
             method : 'GET',
-            headers : {'Authorization' : `Bearer ${localStorage.getItem('token')}`},
+            headers : {'Authorization' : `Bearer ${getStoredToken()}`},
         })
         const response = await res.json();
         return response;
@@ -66,12 +66,12 @@ export const GetReservationItem = async (id) => {
 
 export const UpdateReservationStatus = async (id, status) => {
     try {
-        const res = await fetch(`http://127.0.0.1:8000/api/organizer/reservation/${id}`, {
+        const res = await fetch(`${API_BASE_URL}/api/organizer/reservation/${id}`, {
             method: 'PUT',
             headers: {
                 'Accept': 'application/json',
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${localStorage.getItem('token')}`
+                'Authorization': `Bearer ${getStoredToken()}`
             },
             body: JSON.stringify({ status })
         });
@@ -83,9 +83,9 @@ export const UpdateReservationStatus = async (id, status) => {
 
 export const DeleteReservationItem = async (id) => {
     try {
-        const res = await fetch(`http://127.0.0.1:8000/api/organizer/reservation-items/${id}`, {
+        const res = await fetch(`${API_BASE_URL}/api/organizer/reservation-items/${id}`, {
             method: 'DELETE',
-            headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+            headers: { 'Authorization': `Bearer ${getStoredToken()}` }
         });
         return await res.json();
     } catch (err) {
@@ -95,12 +95,12 @@ export const DeleteReservationItem = async (id) => {
 
 export const UpdateReservationItem = async (data, businessId, itemId) => {
     try {
-        const res = await fetch(`http://127.0.0.1:8000/api/organizer/reservation/${businessId}/item/${itemId}`, {
+        const res = await fetch(`${API_BASE_URL}/api/organizer/reservation/${businessId}/item/${itemId}`, {
             method : 'PUT',
             headers : {
                 'Accept' : 'application/json',
                 'Content-Type' : 'application/json',
-                'Authorization' : `Bearer ${localStorage.getItem('token')}`
+                'Authorization' : `Bearer ${getStoredToken()}`
             },
             body : JSON.stringify(data)
         })
@@ -110,3 +110,21 @@ export const UpdateReservationItem = async (data, businessId, itemId) => {
         console.error("u have an error with updating reservation item", err);
     }
 }
+
+export const GetMyReservations = async () => {
+    const res = await fetch(`${API_BASE_URL}/api/reservations`, {
+        method: 'GET',
+        headers: {
+            'Accept': 'application/json',
+            'Authorization': `Bearer ${getStoredToken()}`
+        }
+    });
+
+    const response = await res.json();
+
+    if (!res.ok) {
+        throw new Error(response.error || 'Failed to fetch reservations');
+    }
+
+    return Array.isArray(response) ? response : [];
+};

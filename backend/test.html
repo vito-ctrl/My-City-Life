@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Reverb Test</title>
+  <script src="https://js.pusher.com/8.0/pusher.min.js"></script>
+</head>
+<body>
+  <h2>Waiting for notifications...</h2>
+  <div id="log" style="font-family: monospace; padding: 20px;"></div>
+
+  <script>
+    // ⚠️ Replace these values with yours
+    const OWNER_JWT    = 'paste_owner_token_here';
+    const OWNER_ID     = 1;
+    const REVERB_KEY   = 'your_REVERB_APP_KEY'; // from .env
+
+    const pusher = new Pusher(REVERB_KEY, {
+      wsHost:       '127.0.0.1',
+      wsPort:       8080,
+      forceTLS:     false,
+      disableStats: true,
+      cluster:      'mt1',
+      authEndpoint: 'http://localhost:8000/broadcasting/auth',
+      auth: {
+        headers: { Authorization: 'Bearer ' + OWNER_JWT }
+      }
+    });
+
+    const channel = pusher.subscribe(`private-user.${OWNER_ID}`);
+
+    channel.bind('pusher:subscription_succeeded', () => {
+      log('✅ Subscribed to private-user.' + OWNER_ID);
+    });
+
+    channel.bind('pusher:subscription_error', (err) => {
+      log('❌ Subscription error: ' + JSON.stringify(err));
+    });
+
+    channel.bind('.booking.created', (data) => {
+      log('🔔 New Booking: ' + JSON.stringify(data, null, 2));
+    });
+
+    channel.bind('.reservation.created', (data) => {
+      log('🔔 New Reservation: ' + JSON.stringify(data, null, 2));
+    });
+
+    function log(msg) {
+      const div = document.getElementById('log');
+      div.innerHTML += `<p>${new Date().toLocaleTimeString()} — ${msg}</p>`;
+      console.log(msg);
+    }
+  </script>
+</body>
+</html>

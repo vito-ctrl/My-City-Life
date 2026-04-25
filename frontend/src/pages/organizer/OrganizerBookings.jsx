@@ -107,6 +107,18 @@ const BookingCard = ({ booking, onConfirm, onCancel }) => {
             )}
             <span className="text-white/15 ml-0.5">#{booking.id}</span>
           </div>
+          
+          {/* Payment Status Badge */}
+          <div className="mt-2">
+            <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[9px] font-black uppercase tracking-widest border ${
+              booking.payment_status === 'paid' 
+                ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' 
+                : 'bg-white/5 text-white/30 border-white/10'
+            }`}>
+              <CreditCard size={9} />
+              {booking.payment_status === 'paid' ? 'Paid' : 'Payment Pending'}
+            </span>
+          </div>
         </div>
 
         {/* ── Right block: status + actions ── */}

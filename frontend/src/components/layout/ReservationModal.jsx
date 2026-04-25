@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { FiX, FiCheck, FiCalendar, FiClock, FiMessageSquare } from 'react-icons/fi';
+import { Reservation } from '../../services/reservation/reservation';
 
 const BusinessReservationModal = ({ isOpen, onClose, selectedItem }) => {
     const [formData, setFormData] = useState({
@@ -26,27 +27,21 @@ const BusinessReservationModal = ({ isOpen, onClose, selectedItem }) => {
         console.log(formData);
 
         try {
-            const token = localStorage.getItem('token');
-            const res = await fetch('http://127.0.0.1:8000/api/reservation', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                },
-                body: JSON.stringify(formData)
-            });
+            const data = await Reservation(formData);
 
-            const data = await res.json();
+            if (data?.data?.id) {
+                const amount = Number(data.data.amount || selectedItem?.price || 0);
+                const successText = amount > 0
+                    ? `Reservation requested. Once the owner accepts it, you can pay ${amount.toFixed(2)} MAD with Stripe.`
+                    : 'Reservation requested. Once the owner accepts it, your spot will be confirmed.';
 
-            if (res.ok) {
-                setMessage({ type: 'success', text: 'Reservation requested! Redirecting...' });
+                setMessage({ type: 'success', text: successText });
                 setTimeout(() => {
                     onClose();
                     setMessage({ type: '', text: '' });
                 }, 2000);
             } else {
-                setMessage({ type: 'error', text: data.error || 'This slot is unavailable.' });
+                setMessage({ type: 'error', text: data?.error || 'This slot is unavailable.' });
             }
         } catch (error) {
             setMessage({ type: 'error', text: 'Connection failed. Try again.' });

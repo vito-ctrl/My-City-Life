@@ -6,8 +6,6 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 
 use App\Models\User;
-use Illuminate\Support\Facades\Auth;
-use App\Models\UserProfile;
 use App\Models\Activity;
 use Tymon\JWTAuth\Facades\JWTAuth;
 use Illuminate\Support\Facades\Storage;
@@ -22,7 +20,6 @@ class ActivityController extends Controller
             'category'     => ['required', 'string'],
             'location'     => ['required', 'string'],
             'price'        => ['nullable', 'numeric', 'min:0'],
-            // 'is_free'      => ['required'],
             'images'       => ['nullable', 'array', 'min:1'],
             'images.*'     => ['image', 'mimes:jpeg,png,jpg', 'max:2048'],
             'start_date'   => ['nullable', 'date'],
@@ -40,9 +37,11 @@ class ActivityController extends Controller
                 $paths[] = $image->store('activities', 'public');
             }
         }
-        // Convert array to JSON string for the database
         $activityData = array_merge($validated, [
-            'image' => json_encode($paths) 
+            'image' => json_encode($paths),
+            'is_approved' => false,
+            'approved_at' => null,
+            'approved_by' => null,
         ]);
 
         $activity = $user->activities()->create($activityData);
@@ -55,40 +54,52 @@ class ActivityController extends Controller
 
     public function index(Request $request)
     {
+        $user = $this->resolveOptionalUser();
+
         $activities = Activity::with('user')
+            ->publiclyVisible()
+            ->withCount(['likes', 'favorites'])
+            ->when($user, function ($query) use ($user) {
+                $query->withExists([
+                    'likes as liked' => fn ($likesQuery) => $likesQuery->where('user_id', $user->id),
+                    'favorites as favorited' => fn ($favoritesQuery) => $favoritesQuery->where('user_id', $user->id),
+                ]);
+            })
             ->when($request->category, fn($q, $v) => $q->where('category', $v))
             ->when($request->search,   fn($q, $v) => $q->where('title', 'like', "%{$v}%"))
             ->latest()
             ->paginate(15);
 
-        // Transform image paths into full URLs for the frontend
-        $activities->getCollection()->transform(function ($activity) {
-            $images = json_decode($activity->image, true) ?? [];
-            $activity->image_urls = array_map(fn($path) => asset('storage/' . $path), $images);
-            return $activity;
-        });
+        $activities->getCollection()->transform(fn ($activity) => $this->appendMeta($activity, $user));
 
         return response()->json($activities);
     }
 
     public function show($id)
     {
-        $activity = Activity::with('user')->find($id);
+        $user = $this->resolveOptionalUser();
 
-        if (!$activity) {
+        $activity = Activity::with('user')
+            ->withCount(['likes', 'favorites'])
+            ->when($user, function ($query) use ($user) {
+                $query->withExists([
+                    'likes as liked' => fn ($likesQuery) => $likesQuery->where('user_id', $user->id),
+                    'favorites as favorited' => fn ($favoritesQuery) => $favoritesQuery->where('user_id', $user->id),
+                ]);
+            })
+            ->find($id);
+
+        if (! $activity || ! $activity->isVisibleTo($user)) {
             return response()->json(['error' => 'Activity not found'], 404);
         }
 
-        // Decode paths and provide full URLs
-        $images = json_decode($activity->image, true) ?? [];
-        $activity->image_urls = array_map(fn($path) => asset('storage/' . $path), $images);
+        $activity = $this->appendMeta($activity, $user);
 
         return response()->json(['data' => $activity]);
     }
 
     public function update(Request $request, $id)
     {
-        // Validation handles 'images' as an array of files
         $validated = $request->validate([
             'title'        => ['sometimes', 'string', 'max:255'],
             'description'  => ['sometimes', 'string'],
@@ -110,9 +121,7 @@ class ActivityController extends Controller
             return response()->json(['error' => 'Unauthorized'], 404);
         }
 
-        // Handle new image uploads if provided
         if ($request->hasFile('images')) {
-            // Optional: Delete old images from storage
             $oldImages = json_decode($activity->image, true) ?? [];
             foreach ($oldImages as $oldPath) {
                 Storage::disk('public')->delete($oldPath);
@@ -139,7 +148,6 @@ class ActivityController extends Controller
             return response()->json(['error' => 'Unauthorized'], 404);
         }
 
-        // Delete physical files from storage before deleting the record
         $images = json_decode($activity->image, true) ?? [];
     foreach ($images as $path) {
         Storage::disk('public')->delete($path);
@@ -159,6 +167,36 @@ class ActivityController extends Controller
         return response()->json($activities);
     }
 
+    private function appendMeta(Activity $activity, ?User $user): Activity
+    {
+        $images = json_decode($activity->image, true) ?? [];
+        $activity->image_urls = array_values(array_filter(array_map(function ($path) {
+            if (!$path) {
+                return null;
+            }
+
+            if (str_starts_with($path, 'http://') || str_starts_with($path, 'https://')) {
+                return $path;
+            }
+
+            $normalizedPath = preg_replace('#^/?storage/#', '', $path);
+
+            return asset('storage/' . ltrim($normalizedPath, '/'));
+        }, $images)));
+
+        $activity->liked = (bool) ($activity->liked ?? false);
+        $activity->favorited = (bool) ($activity->favorited ?? false);
+
+        return $activity;
+    }
+
+    private function resolveOptionalUser(): ?User
+    {
+        try {
+            return JWTAuth::parseToken()->authenticate();
+        } catch (\Throwable $e) {
+            return null;
+        }
+    }
+
 }
-
-
