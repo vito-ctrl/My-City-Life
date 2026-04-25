@@ -1,7 +1,7 @@
 import NotificationCenter from './NotificationCenter';
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
-import { FiUser, FiLogOut, FiCompass, FiX, FiHeart, FiCalendar, FiList, FiGrid, FiShield } from 'react-icons/fi';
+import { FiUser, FiLogOut, FiCompass, FiX, FiHeart, FiCalendar, FiList, FiGrid, FiBriefcase, FiUsers } from 'react-icons/fi';
 import { AUTH_CHANGE_EVENT, clearAuthSession, getStoredToken, getStoredUser } from '../../utils/auth';
 import { fetchCurrentProfile } from '../../services/profile';
 
@@ -78,6 +78,7 @@ const Header = () => {
   };
 
   const isActive = (path) => location.pathname === path;
+  const isAdminRouteActive = (path) => location.pathname === path;
   const hasProfileImage = Boolean(user?.image);
   const isAdmin = user?.role?.toLowerCase() === 'admin';
 
@@ -95,20 +96,28 @@ const Header = () => {
       return (
         <>
           <Link
-            to="/"
+            to="/admin/activities"
             className={`flex items-center gap-2 text-[11px] font-black uppercase tracking-widest transition-colors ${
-              isActive('/') ? 'text-orange-500' : 'text-white/60 hover:text-white'
+              isAdminRouteActive('/admin/activities') ? 'text-orange-500' : 'text-white/60 hover:text-white'
             }`}
           >
-            <FiCompass /> Explore
+            <FiList /> Activities
           </Link>
           <Link
-            to="/admin/dashboard"
+            to="/admin/businesses"
             className={`flex items-center gap-2 text-[11px] font-black uppercase tracking-widest transition-colors ${
-              isActive('/admin/dashboard') ? 'text-orange-500' : 'text-white/60 hover:text-white'
+              isAdminRouteActive('/admin/businesses') ? 'text-orange-500' : 'text-white/60 hover:text-white'
             }`}
           >
-            <FiShield /> Admin
+            <FiBriefcase /> Businesses
+          </Link>
+          <Link
+            to="/admin/users"
+            className={`flex items-center gap-2 text-[11px] font-black uppercase tracking-widest transition-colors ${
+              isAdminRouteActive('/admin/users') ? 'text-orange-500' : 'text-white/60 hover:text-white'
+            }`}
+          >
+            <FiUsers /> Users
           </Link>
         </>
       );
@@ -278,16 +287,40 @@ const Header = () => {
           {/* Action Links */}
           <div className="flex flex-col gap-3">
             {isAdmin && (
-              <Link
-                to="/admin/dashboard"
-                onClick={() => setIsSidebarOpen(false)}
-                className={`flex items-center justify-between p-4 rounded-2xl transition-all group ${isActive('/admin/dashboard') ? 'bg-orange-500 text-white' : 'bg-white/5 text-white/70 hover:bg-white/10 hover:text-white'}`}
-              >
-                <div className="flex items-center gap-4">
-                  <FiShield size={20} className={isActive('/admin/dashboard') ? 'text-white' : 'text-orange-500'} />
-                  <span className="font-bold text-xs uppercase tracking-widest">Admin</span>
-                </div>
-              </Link>
+              <>
+                <Link
+                  to="/admin/activities"
+                  onClick={() => setIsSidebarOpen(false)}
+                  className={`flex items-center justify-between p-4 rounded-2xl transition-all group ${isAdminRouteActive('/admin/activities') ? 'bg-orange-500 text-white' : 'bg-white/5 text-white/70 hover:bg-white/10 hover:text-white'}`}
+                >
+                  <div className="flex items-center gap-4">
+                    <FiList size={20} className={isAdminRouteActive('/admin/activities') ? 'text-white' : 'text-orange-500'} />
+                    <span className="font-bold text-xs uppercase tracking-widest">Activities</span>
+                  </div>
+                </Link>
+
+                <Link
+                  to="/admin/businesses"
+                  onClick={() => setIsSidebarOpen(false)}
+                  className={`flex items-center justify-between p-4 rounded-2xl transition-all group ${isAdminRouteActive('/admin/businesses') ? 'bg-orange-500 text-white' : 'bg-white/5 text-white/70 hover:bg-white/10 hover:text-white'}`}
+                >
+                  <div className="flex items-center gap-4">
+                    <FiBriefcase size={20} className={isAdminRouteActive('/admin/businesses') ? 'text-white' : 'text-orange-500'} />
+                    <span className="font-bold text-xs uppercase tracking-widest">Businesses</span>
+                  </div>
+                </Link>
+
+                <Link
+                  to="/admin/users"
+                  onClick={() => setIsSidebarOpen(false)}
+                  className={`flex items-center justify-between p-4 rounded-2xl transition-all group ${isAdminRouteActive('/admin/users') ? 'bg-orange-500 text-white' : 'bg-white/5 text-white/70 hover:bg-white/10 hover:text-white'}`}
+                >
+                  <div className="flex items-center gap-4">
+                    <FiUsers size={20} className={isAdminRouteActive('/admin/users') ? 'text-white' : 'text-orange-500'} />
+                    <span className="font-bold text-xs uppercase tracking-widest">Users</span>
+                  </div>
+                </Link>
+              </>
             )}
 
             <Link 

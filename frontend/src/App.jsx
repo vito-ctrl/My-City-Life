@@ -35,6 +35,9 @@ import BusinessDetails from './pages/organizer/BusinessDetails';
 import MyBookings from './pages/bookings/MyBookings';
 import BusinessEdit from './pages/organizer/BusinessEdit';
 import AdminDashboard from './pages/admin/AdminDashboard';
+import AdminActivities from './pages/admin/AdminActivities';
+import AdminBusinesses from './pages/admin/AdminBusinesses';
+import AdminUsers from './pages/admin/AdminUsers';
 import { AUTH_CHANGE_EVENT, getStoredToken } from './utils/auth';
 
 
@@ -119,6 +122,15 @@ function App() {
 
           <Route path="/admin/dashboard" element={
             <AdminRoute><AdminDashboard /></AdminRoute>
+          } />
+          <Route path="/admin/activities" element={
+            <AdminRoute><AdminActivities /></AdminRoute>
+          } />
+          <Route path="/admin/businesses" element={
+            <AdminRoute><AdminBusinesses /></AdminRoute>
+          } />
+          <Route path="/admin/users" element={
+            <AdminRoute><AdminUsers /></AdminRoute>
           } />
 
 

@@ -110,14 +110,20 @@ class AdminModerationController extends Controller
             ->latest()
             ->paginate(15);
 
+        $users->getCollection()->transform(function (User $user) {
+            $user->setAttribute('is_admin', $user->isAdmin());
+
+            return $user;
+        });
+
         return response()->json($users);
     }
 
     public function banUser(User $user, Request $request)
     {
-        if ($request->user()->is($user)) {
+        if ($user->isAdmin()) {
             return response()->json([
-                'error' => 'Admins cannot ban themselves.',
+                'error' => 'Admins cannot ban admin accounts.',
             ], 422);
         }
 
