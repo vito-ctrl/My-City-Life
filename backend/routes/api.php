@@ -117,12 +117,17 @@ Route::middleware(['auth:api', 'not_banned'])->group(function () {
 
     // Admin moderation
     Route::prefix('admin')->middleware('admin')->group(function () {
+        Route::get('/activities', [AdminModerationController::class, 'activities']);
         Route::get('/activities/pending', [AdminModerationController::class, 'pendingActivities']);
         Route::patch('/activities/{activity}/approve', [AdminModerationController::class, 'approveActivity']);
+        Route::patch('/activities/{activity}/disapprove', [AdminModerationController::class, 'disapproveActivity']);
 
+        Route::get('/businesses', [AdminModerationController::class, 'businesses']);
         Route::get('/businesses/pending', [AdminModerationController::class, 'pendingBusinesses']);
         Route::patch('/businesses/{business}/approve', [AdminModerationController::class, 'approveBusiness']);
+        Route::patch('/businesses/{business}/disapprove', [AdminModerationController::class, 'disapproveBusiness']);
 
+        Route::get('/users', [AdminModerationController::class, 'users']);
         Route::patch('/users/{user}/ban', [AdminModerationController::class, 'banUser']);
         Route::patch('/users/{user}/unban', [AdminModerationController::class, 'unbanUser']);
     });

@@ -26,21 +26,34 @@ const request = async (path, options = {}) => {
   return payload;
 };
 
-export const getPendingActivities = () =>
-  request('/api/admin/activities/pending');
+export const getActivities = (page = 1) =>
+  request(`/api/admin/activities?page=${page}`);
 
 export const approveActivity = (activityId) =>
   request(`/api/admin/activities/${activityId}/approve`, {
     method: 'PATCH',
   });
 
-export const getPendingBusinesses = () =>
-  request('/api/admin/businesses/pending');
+export const disapproveActivity = (activityId) =>
+  request(`/api/admin/activities/${activityId}/disapprove`, {
+    method: 'PATCH',
+  });
+
+export const getBusinesses = (page = 1) =>
+  request(`/api/admin/businesses?page=${page}`);
 
 export const approveBusiness = (businessId) =>
   request(`/api/admin/businesses/${businessId}/approve`, {
     method: 'PATCH',
   });
+
+export const disapproveBusiness = (businessId) =>
+  request(`/api/admin/businesses/${businessId}/disapprove`, {
+    method: 'PATCH',
+  });
+
+export const getUsers = (page = 1) =>
+  request(`/api/admin/users?page=${page}`);
 
 export const banUser = (userId, reason) =>
   request(`/api/admin/users/${userId}/ban`, {

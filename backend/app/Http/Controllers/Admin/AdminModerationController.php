@@ -10,6 +10,15 @@ use Illuminate\Http\Request;
 
 class AdminModerationController extends Controller
 {
+    public function activities()
+    {
+        $activities = Activity::with('user')
+            ->latest()
+            ->paginate(15);
+
+        return response()->json($activities);
+    }
+
     public function pendingActivities()
     {
         $activities = Activity::with('user')
@@ -34,6 +43,29 @@ class AdminModerationController extends Controller
         ]);
     }
 
+    public function disapproveActivity(Activity $activity)
+    {
+        $activity->update([
+            'is_approved' => false,
+            'approved_at' => null,
+            'approved_by' => null,
+        ]);
+
+        return response()->json([
+            'message' => 'Activity disapproved successfully.',
+            'data' => $activity->fresh(['user']),
+        ]);
+    }
+
+    public function businesses()
+    {
+        $businesses = Business::with('user')
+            ->latest()
+            ->paginate(15);
+
+        return response()->json($businesses);
+    }
+
     public function pendingBusinesses()
     {
         $businesses = Business::with('user')
@@ -56,6 +88,29 @@ class AdminModerationController extends Controller
             'message' => 'Business approved successfully.',
             'data' => $business->fresh(['user']),
         ]);
+    }
+
+    public function disapproveBusiness(Business $business)
+    {
+        $business->update([
+            'is_approved' => false,
+            'approved_at' => null,
+            'approved_by' => null,
+        ]);
+
+        return response()->json([
+            'message' => 'Business disapproved successfully.',
+            'data' => $business->fresh(['user']),
+        ]);
+    }
+
+    public function users()
+    {
+        $users = User::query()
+            ->latest()
+            ->paginate(15);
+
+        return response()->json($users);
     }
 
     public function banUser(User $user, Request $request)
