@@ -1,0 +1,130 @@
+<?php
+
+namespace App\Http\Controllers\Admin;
+
+use App\Http\Controllers\Controller;
+use App\Models\Activity;
+use App\Models\Business;
+use App\Models\User;
+use Illuminate\Http\Request;
+
+class AdminModerationController extends Controller
+{
+    public function pendingActivities()
+    {
+        $activities = Activity::with('user')
+            ->where('is_approved', false)
+            ->latest()
+            ->paginate(15);
+
+        return response()->json($activities);
+    }
+
+    public function approveActivity(Activity $activity, Request $request)
+    {
+        $activity->update([
+            'is_approved' => true,
+            'approved_at' => now(),
+            'approved_by' => $request->user()->id,
+        ]);
+
+        return response()->json([
+            'message' => 'Activity approved successfully.',
+            'data' => $activity->fresh(['user']),
+        ]);
+    }
+
+    public function pendingBusinesses()
+    {
+        $businesses = Business::with('user')
+            ->where('is_approved', false)
+            ->latest()
+            ->paginate(15);
+
+        return response()->json($businesses);
+    }
+
+    public function approveBusiness(Business $business, Request $request)
+    {
+        $business->update([
+            'is_approved' => true,
+            'approved_at' => now(),
+            'approved_by' => $request->user()->id,
+        ]);
+
+        return response()->json([
+            'message' => 'Business approved successfully.',
+            'data' => $business->fresh(['user']),
+        ]);
+    }
+
+    public function banUser(User $user, Request $request)
+    {
+        if ($request->user()->is($user)) {
+            return response()->json([
+                'error' => 'Admins cannot ban themselves.',
+            ], 422);
+        }
+
+        $validated = $request->validate([
+            'reason' => ['nullable', 'string', 'max:1000'],
+        ]);
+
+        $user->update([
+            'banned_at' => now(),
+            'banned_reason' => $validated['reason'] ?? null,
+            'banned_by' => $request->user()->id,
+        ]);
+
+        return response()->json([
+            'message' => 'User banned successfully.',
+            'data' => $user->fresh(),
+        ]);
+    }
+
+    public function unbanUser(User $user)
+    {
+        $user->update([
+            'banned_at' => null,
+            'banned_reason' => null,
+            'banned_by' => null,
+        ]);
+
+        return response()->json([
+            'message' => 'User unbanned successfully.',
+            'data' => $user->fresh(),
+        ]);
+    }
+
+    public function banBusiness(Business $business, Request $request)
+    {
+        $validated = $request->validate([
+            'reason' => ['nullable', 'string', 'max:1000'],
+        ]);
+
+        $business->update([
+            'banned_at' => now(),
+            'banned_reason' => $validated['reason'] ?? null,
+            'banned_by' => $request->user()->id,
+        ]);
+
+        return response()->json([
+            'message' => 'Business banned successfully.',
+            'data' => $business->fresh(['user']),
+        ]);
+    }
+
+    public function unbanBusiness(Business $business)
+    {
+        $business->update([
+            'banned_at' => null,
+            'banned_reason' => null,
+            'banned_by' => null,
+        ]);
+
+        return response()->json([
+            'message' => 'Business unbanned successfully.',
+            'data' => $business->fresh(['user']),
+        ]);
+    }
+}
