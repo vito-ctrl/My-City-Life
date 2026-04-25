@@ -127,10 +127,6 @@ class BusinessController extends Controller
     $user = JWTAuth::parseToken()->authenticate();
     $business = $user->businesses()->findOrFail($id);
 
-    if ($business->isBanned()) {
-        return response()->json(['error' => 'This business has been banned.'], 403);
-    }
-
     if ($request->hasFile('images')) {
         $oldImages = json_decode($business->image, true) ?? [];
         foreach ($oldImages as $oldPath) {
@@ -168,10 +164,6 @@ class BusinessController extends Controller
             
         if (!$business) {
             return response()->json(['error' => 'Business not found or unauthorized'], 404);
-        }
-
-        if ($business->isBanned()) {
-            return response()->json(['error' => 'This business has been banned.'], 403);
         }
 
         $images = json_decode($business->image, true) ?? [];

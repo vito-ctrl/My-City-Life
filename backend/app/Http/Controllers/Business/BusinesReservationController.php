@@ -17,10 +17,6 @@ class BusinesReservationController extends Controller
         $user = JWTAuth::parseToken()->authenticate();
         $business = Business::where('id', $businessId)->where('user_id', $user->id)->firstOrFail();
 
-        if ($business->isBanned()) {
-            return response()->json(['error' => 'This business has been banned.'], 403);
-        }
-
         $validated = $request->validate([
             'name'     => 'required|string',
             'capacity' => 'required|integer|min:1',
@@ -39,10 +35,6 @@ public function UpdateReservationItem(Request $request, $businessId, $itemId)
     $business = Business::where('id', $businessId)
         ->where('user_id', $user->id)
         ->firstOrFail();
-
-    if ($business->isBanned()) {
-        return response()->json(['error' => 'This business has been banned.'], 403);
-    }
 
     $item = $business->reservableItems()->findOrFail($itemId);
 
@@ -134,10 +126,6 @@ public function UpdateReservationItem(Request $request, $businessId, $itemId)
             ->where('user_id', $user->id)
             ->firstOrFail();
 
-        if ($business->isBanned()) {
-            return response()->json(['error' => 'This business has been banned.'], 403);
-        }
-
         $reservations = Reservation::whereHas('reservableItem', function ($query) use ($businessId) {
             $query->where('business_id', $businessId);
         })
@@ -156,10 +144,6 @@ public function UpdateReservationItem(Request $request, $businessId, $itemId)
         $reservation = Reservation::whereHas('reservableItem.business', function($q) use ($user) {
             $q->where('user_id', $user->id);
         })->findOrFail($id);
-
-        if ($reservation->reservableItem?->business?->isBanned()) {
-            return response()->json(['error' => 'This business has been banned.'], 403);
-        }
 
         $previousStatus = $reservation->status;
         $updates = ['status' => $request->status];

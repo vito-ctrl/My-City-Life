@@ -95,36 +95,4 @@ class AdminModerationController extends Controller
             'data' => $user->fresh(),
         ]);
     }
-
-    public function banBusiness(Business $business, Request $request)
-    {
-        $validated = $request->validate([
-            'reason' => ['nullable', 'string', 'max:1000'],
-        ]);
-
-        $business->update([
-            'banned_at' => now(),
-            'banned_reason' => $validated['reason'] ?? null,
-            'banned_by' => $request->user()->id,
-        ]);
-
-        return response()->json([
-            'message' => 'Business banned successfully.',
-            'data' => $business->fresh(['user']),
-        ]);
-    }
-
-    public function unbanBusiness(Business $business)
-    {
-        $business->update([
-            'banned_at' => null,
-            'banned_reason' => null,
-            'banned_by' => null,
-        ]);
-
-        return response()->json([
-            'message' => 'Business unbanned successfully.',
-            'data' => $business->fresh(['user']),
-        ]);
-    }
 }

@@ -75,7 +75,6 @@ class Business extends Model
     {
         return $query
             ->where('is_approved', true)
-            ->whereNull('banned_at')
             ->whereHas('user', fn ($userQuery) => $userQuery->whereNull('banned_at'));
     }
 
@@ -94,17 +93,11 @@ class Business extends Model
         return $viewer->isAdmin() || $viewer->id === $this->user_id;
     }
 
-    public function isBanned(): bool
-    {
-        return ! is_null($this->banned_at);
-    }
-
     public function isOperational(): bool
     {
         $owner = $this->relationLoaded('user') ? $this->user : $this->user()->first();
 
         return $this->is_approved
-            && ! $this->isBanned()
             && $owner
             && ! $owner->isBanned();
     }

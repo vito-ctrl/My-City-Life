@@ -122,8 +122,6 @@ Route::middleware(['auth:api', 'not_banned'])->group(function () {
 
         Route::get('/businesses/pending', [AdminModerationController::class, 'pendingBusinesses']);
         Route::patch('/businesses/{business}/approve', [AdminModerationController::class, 'approveBusiness']);
-        Route::patch('/businesses/{business}/ban', [AdminModerationController::class, 'banBusiness']);
-        Route::patch('/businesses/{business}/unban', [AdminModerationController::class, 'unbanBusiness']);
 
         Route::patch('/users/{user}/ban', [AdminModerationController::class, 'banUser']);
         Route::patch('/users/{user}/unban', [AdminModerationController::class, 'unbanUser']);
