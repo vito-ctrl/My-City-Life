@@ -5,6 +5,8 @@ import { FiUser, FiLogOut, FiCompass, FiX, FiHeart, FiCalendar, FiList, FiGrid, 
 import { AUTH_CHANGE_EVENT, clearAuthSession, getStoredToken, getStoredUser } from '../../utils/auth';
 import { fetchCurrentProfile } from '../../services/profile';
 
+import ActivityIcon from '../ui/ActivityIcon';
+
 const Header = () => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -203,9 +205,7 @@ const Header = () => {
           
           {/* Logo */}
           <Link to="/" className="flex items-center gap-2 group">
-            <div className="w-8 h-8 bg-gradient-to-br from-orange-500 to-red-600 rounded-lg flex items-center justify-center shadow-lg group-hover:rotate-12 transition-transform">
-              <svg width="18" height="18" viewBox="0 0 40 40" fill="none"><path d="M20 12L26 20L20 28L14 20L20 12Z" fill="white"/></svg>
-            </div>
+            <ActivityIcon/>
             <span className="text-lg font-black tracking-tighter text-white uppercase italic">
               MYCITY<span className="text-orange-500">LIFE</span>
             </span>

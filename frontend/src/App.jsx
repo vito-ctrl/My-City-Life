@@ -2,19 +2,16 @@ import './App.css'
 import { useEffect } from 'react';
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 
-// ── Auth pages (always public) ─────────────────────────────────────────────
 import Register from './pages/auth/Register'
 import Login from './pages/auth/Login'
 import OAuthSuccess from './pages/auth/OAuthSuccess'
 import ForgetPassword from './pages/auth/ResetPassword/ForgetPassword';
 import ResetPassword from './pages/auth/ResetPassword/ResetPassword';
 
-// ── Route guards ───────────────────────────────────────────────────────────
-// ProtectedRoute: requires a token (user must be logged in)
 import ProtectedRoute from './components/auth/ProtectedRoute';
 import AdminRoute from './components/auth/AdminRoute';
+import OrganizerRoute from './components/auth/OrganizerRoute';
 
-// ── Regular (user-facing) pages ────────────────────────────────────────────
 import Home from './pages/Home';
 import Dashboard from './pages/Dashboard';
 import ActivityForm from './pages/activities/ActivityForm';
@@ -23,7 +20,6 @@ import ManageActivities from './pages/activities/ManageActivities';
 import Profile from './pages/Profile';
 import LandingPage from './pages/LandingPage';
 import ActivitiesFavorites from './pages/activities/ActivitiesFavorites';
-import TestBooking from './pages/TestBooking/TestBooking';
 
 import OrganizerDashboard from './pages/organizer/OrganizerDashboard';
 import OrganizerBookings from './pages/organizer/OrganizerBookings';
@@ -66,7 +62,6 @@ function App() {
 
         <Routes>
 
-          {/* ── Public routes (no login required) ───────────────────────── */}
           <Route path="/"               element={<Home />} />
           <Route path="/landing"        element={<LandingPage />} />
           <Route path="/register"       element={<Register />} />
@@ -75,10 +70,9 @@ function App() {
           <Route path="/ForgetPassword" element={<ForgetPassword />} />
           <Route path="/reset-password" element={<ResetPassword />} />
 
-          {/* Activity detail page is public so anyone can browse */}
           <Route path="/:type/:id"      element={<ActivitiesDeatels />} />
 
-          {/* ── Protected routes (must be logged in) ────────────────────── */}
+          {/*logged in*/}
           <Route path="/Dashboard" element={
             <ProtectedRoute><Dashboard /></ProtectedRoute>
           } />
@@ -102,21 +96,21 @@ function App() {
           } />
 
 
-          {/* ── Organizer-only routes (must be logged in as Organizer) ───── */}
+          {/*be logged in as Organizer*/}
           <Route path="/organizer/dashboard" element={
-            <ProtectedRoute><OrganizerDashboard /></ProtectedRoute>
+            <OrganizerRoute><OrganizerDashboard /></OrganizerRoute>
           } />
 
           <Route path="/organizer/bookings" element={
-            <ProtectedRoute><OrganizerBookings /></ProtectedRoute>
+            <OrganizerRoute><OrganizerBookings /></OrganizerRoute>
           } />
 
           <Route path="/business/Manage" element={
-            <ProtectedRoute><BusinessManager /></ProtectedRoute>
+            <OrganizerRoute><BusinessManager /></OrganizerRoute>
           } />
 
           <Route path="/business/edit/:id" element={
-            <ProtectedRoute><BusinessEdit /></ProtectedRoute>
+            <OrganizerRoute><BusinessEdit /></OrganizerRoute>
           } />
 
           <Route path="/admin/dashboard" element={
@@ -131,11 +125,6 @@ function App() {
           <Route path="/admin/users" element={
             <AdminRoute><AdminUsers /></AdminRoute>
           } />
-
-
-
-          {/* Test route (development only) */}
-          <Route path="/test-booking" element={<TestBooking />} />
 
         </Routes>
       </BrowserRouter>

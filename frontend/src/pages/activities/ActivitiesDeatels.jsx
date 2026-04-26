@@ -16,21 +16,21 @@ const ActivitiesDetails = () => {
   const { type, id } = useParams();
   const navigate     = useNavigate();
 
-  const [item,            setItem]            = useState(null);
-  const [loading,         setLoading]         = useState(true);
-  const [mainImage,       setMainImage]       = useState('');
-  const [fetchcomments,   setFetchcomments]   = useState([]);
-  const [comment,         setComment]         = useState('');
-  const [isSubmitting,    setIsSubmitting]     = useState(false);
+  const [item, setItem] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [mainImage, setMainImage] = useState('');
+  const [fetchcomments, setFetchcomments] = useState([]);
+  const [comment, setComment] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const token = localStorage.getItem('token');
 
-  const [liked,       setLiked]       = useState(false);
-  const [likesCount,  setLikesCount]  = useState(0);
-  const [favorited,   setFavorited]   = useState(false);
+  const [liked, setLiked] = useState(false);
+  const [likesCount, setLikesCount] = useState(0);
+  const [favorited, setFavorited] = useState(false);
 
-  const [isPaymentOpen,   setIsPaymentOpen]   = useState(false);
-  const [payingBooking,   setPayingBooking]   = useState(null);
+  const [isPaymentOpen, setIsPaymentOpen] = useState(false);
+  const [payingBooking, setPayingBooking] = useState(null);
 
   useEffect(() => {
     const fetchDetails = async () => {

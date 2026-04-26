@@ -253,8 +253,7 @@ const Home = () => {
             </button>
           </section>
         : (
-          // return 
-          <div></div>
+          <Footer/>
         )} 
       </div>
     </div>

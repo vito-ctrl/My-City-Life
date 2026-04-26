@@ -90,11 +90,6 @@ class User extends Authenticatable implements JWTSubject
         return $this->role === 'Organizer';
     }
 
-    public function isGuideLocal()
-    {
-        return $this->role === 'Guide Local';
-    }
-
     public function isUser()
     {
         return $this->role === 'user';
