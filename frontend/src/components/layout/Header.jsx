@@ -151,8 +151,6 @@ const Header = () => {
             <FiList /> My Businesses
           </Link>
 
-
-
           <Link
             to="/activity/manage"
             className={`flex items-center gap-2 text-[11px] font-black uppercase tracking-widest transition-colors ${
@@ -186,7 +184,14 @@ const Header = () => {
         >
           <FiHeart /> Favorites
         </Link>
-
+        <Link
+            to="/activity/manage"
+            className={`flex items-center gap-2 text-[11px] font-black uppercase tracking-widest transition-colors ${
+              isActive('/activity/manage') ? 'text-orange-500' : 'text-white/60 hover:text-white'
+            }`}
+          >
+            <FiList /> My Activities
+          </Link>
       </>
     );
   };

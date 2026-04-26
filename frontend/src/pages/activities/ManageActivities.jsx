@@ -51,7 +51,8 @@ const ManageActivities = () => {
 
   const filteredActivities = activities.filter(act => 
     act.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    act.category.toLowerCase().includes(searchQuery.toLowerCase())
+    act.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    act.location.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
 
@@ -87,10 +88,8 @@ const ManageActivities = () => {
         </header>
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-12">
+        <div className="grid grid-cols-1 sm:grid-cols-1 gap-6 mb-12">
           <StatCard icon={<FiActivity/>} label="Total Listed" value={activities.length} color="text-blue-400" />
-          <StatCard icon={<FiCheckCircle/>} label="Active Now" value={activities.length} color="text-green-400" />
-          <StatCard icon={<FiClock/>} label="Recent Edits" value="2" color="text-orange-400" />
         </div>
 
         {/* Search & Filter Bar */}
@@ -98,7 +97,7 @@ const ManageActivities = () => {
           <FiSearch className="absolute left-6 top-1/2 -translate-y-1/2 text-white/20 group-focus-within:text-orange-500 transition-colors" />
           <input 
             type="text" 
-            placeholder="Search your experiences by title or category..." 
+            placeholder="Search your experiences by title or category or city" 
             className="w-full bg-white/[0.03] border border-white/5 py-5 pl-14 pr-6 rounded-2xl outline-none focus:border-orange-500/30 focus:bg-white/[0.05] transition-all font-medium placeholder:text-white/10"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}

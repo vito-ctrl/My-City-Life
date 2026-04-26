@@ -111,7 +111,6 @@ class ActivityController extends Controller
             'images.*'     => ['image', 'mimes:jpeg,png,jpg', 'max:2048'],
             'start_date'   => ['nullable', 'date'],
             'end_date'     => ['nullable', 'date', 'after_or_equal:start_date'],
-            'max_capacity' => ['nullable', 'integer', 'min:1'],
         ]);
 
         $user = JWTAuth::parseToken()->authenticate();

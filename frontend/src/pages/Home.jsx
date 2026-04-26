@@ -27,7 +27,6 @@ const Home = () => {
         
         const acts = await actRes.json();
         const buss = await busRes.json();
-        console.log("buss", buss);
         
         setActivities(acts.data || []);
         setBusinesses(buss.data || []);
@@ -56,7 +55,6 @@ const Home = () => {
         );
 
         const data = await res.json();
-        console.log(data);
 
         const components = data.results[0].components;
 
@@ -75,10 +73,6 @@ const Home = () => {
     };
     // getCityCountry()
   }, [token]);
-
-  activities.forEach(element => {
-    console.log(element.location);
-  });
 
   return (
     <div className="bg-[#0a0a0a]">

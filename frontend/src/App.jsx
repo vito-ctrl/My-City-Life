@@ -25,7 +25,6 @@ import LandingPage from './pages/LandingPage';
 import ActivitiesFavorites from './pages/activities/ActivitiesFavorites';
 import TestBooking from './pages/TestBooking/TestBooking';
 
-// ── Organizer pages ────────────────────────────────────────────────────────
 import OrganizerDashboard from './pages/organizer/OrganizerDashboard';
 import OrganizerBookings from './pages/organizer/OrganizerBookings';
 
@@ -145,9 +144,3 @@ function App() {
 }
 
 export default App
-import AdminRoute from './components/auth/AdminRoute';
-import AdminDashboard from './pages/admin/AdminDashboard';
-          <Route path="/admin/dashboard" element={
-            <AdminRoute><AdminDashboard /></AdminRoute>
-          } />
-          
