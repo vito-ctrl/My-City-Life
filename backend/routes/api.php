@@ -28,6 +28,7 @@ Route::post('/reset-password',  [PasswordResetController::class, 'resetPassword'
 
 // ── Public Reads ──────────────────────────────────────────────────────────────
 Route::get('/activities',      [ActivityController::class, 'index']);
+Route::get('/activities/latest', [ActivityController::class, 'latest']);
 Route::get('/activities/user/all',   [ActivityController::class, 'getUserActivities']);
 Route::get('/activities/{id}', [ActivityController::class, 'show']);
 
@@ -47,6 +48,8 @@ Route::middleware(['auth:api', 'not_banned'])->group(function () {
     Route::post  ('/activities/create', [ActivityController::class, 'create']);
     Route::put   ('/activities/{id}',   [ActivityController::class, 'update']);
     Route::delete('/activities/{id}',   [ActivityController::class, 'destroy']);
+    
+    Route::get  ('/search/activities', [ActivityController::class, 'searchActivities']);
 
     // Businesses CRUD
     Route::post  ('/businesses/create', [BusinessController::class, 'create']);

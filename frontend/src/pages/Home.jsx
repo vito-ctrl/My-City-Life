@@ -4,10 +4,12 @@ import ActivityCard from '../components/ui/ActivityCard';
 import { FiSearch, FiChevronRight } from 'react-icons/fi';
 import Header from '../components/layout/Header';
 import Footer from '../components/layout/Footer';
+import { getLatestActivities } from '../services/latestActivities';
 
 const Home = () => {
   const navigate = useNavigate();
   const [activities, setActivities] = useState([]);
+  const [latestActivities, setLatestActivities] = useState([]);
   const [businesses, setBusinesses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [location, setLocation] = useState([]);
@@ -20,9 +22,10 @@ const Home = () => {
     const fetchData = async () => {
       try {
         const headers = token ? { Authorization: `Bearer ${token}` } : {};
-        const [actRes, busRes] = await Promise.all([
+        const [actRes, busRes, latestActs] = await Promise.all([
           fetch('http://127.0.0.1:8000/api/activities', { headers }),
-          fetch('http://127.0.0.1:8000/api/businesses', { headers })
+          fetch('http://127.0.0.1:8000/api/businesses', { headers }),
+          getLatestActivities(),
         ]);
         
         const acts = await actRes.json();
@@ -30,6 +33,7 @@ const Home = () => {
         
         setActivities(acts.data || []);
         setBusinesses(buss.data || []);
+        setLatestActivities(latestActs);
       } catch (error) {
         console.error("Discovery error:", error);
       } finally {
@@ -136,6 +140,31 @@ const Home = () => {
             </div>
           )}
         </section> : null}
+
+        <section className="px-8 md:px-16 py-14">
+          <div className="mb-12">
+            <span className="text-orange-500 text-[11px] font-black tracking-[3px] uppercase">Just Added</span>
+            <h2 className="text-4xl md:text-5xl font-black text-white leading-tight italic mt-2">LATEST ACTIVITIES</h2>
+            <p className="text-white/40 text-sm md:text-base mt-4 max-w-2xl">
+              Fresh activities recently added to the city.
+            </p>
+          </div>
+
+          {loading ? (
+            <div className="text-white/20 font-black animate-pulse">LOADING DISCOVERIES...</div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {latestActivities.map((act) => (
+                <ActivityCard 
+                  key={act.id}
+                  item={act}
+                  type="activities"
+                  onClick={() => navigate(`/activities/${act.id}`)}
+                />
+              ))}
+            </div>
+          )}
+        </section>
 
         {/* ACTIVITIES IN YOUR CITY */}
         <section className="px-8 md:px-16 py-14">

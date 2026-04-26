@@ -75,6 +75,31 @@ class ActivityController extends Controller
         return response()->json($activities);
     }
 
+    public function latest()
+    {
+        $user = $this->resolveOptionalUser();
+
+        $activities = Activity::with('user')
+            ->publiclyVisible()
+            ->withCount(['likes', 'favorites'])
+            ->when($user, function ($query) use ($user) {
+                $query->withExists([
+                    'likes as liked' => fn ($likesQuery) => $likesQuery->where('user_id', $user->id),
+                    'favorites as favorited' => fn ($favoritesQuery) => $favoritesQuery->where('user_id', $user->id),
+                ]);
+            })
+            ->orderByDesc('created_at')
+            ->orderByDesc('id')
+            ->limit(6)
+            ->get()
+            ->map(fn ($activity) => $this->appendMeta($activity, $user))
+            ->values();
+
+        return response()->json([
+            'data' => $activities,
+        ]);
+    }
+
     public function show($id)
     {
         $user = $this->resolveOptionalUser();
@@ -148,9 +173,9 @@ class ActivityController extends Controller
         }
 
         $images = json_decode($activity->image, true) ?? [];
-    foreach ($images as $path) {
-        Storage::disk('public')->delete($path);
-    }
+        foreach ($images as $path) {
+            Storage::disk('public')->delete($path);
+        }
 
         $activity->delete();
 
@@ -196,6 +221,23 @@ class ActivityController extends Controller
         } catch (\Throwable $e) {
             return null;
         }
+    }
+
+    public function searchActivities(Request $request) {
+        $request->validate([
+            "search" => "string"
+        ]);
+
+
+        $user = JWTAuth::parseToken()->authenticate();
+
+        $founded = Activity::where('user_id', $user->id)
+            ->when($request->search, function($query, $search){
+                $query->where('location', 'like', "%{$search}%");
+            })
+            ->get();
+
+        return $founded;
     }
 
 }
