@@ -109,7 +109,7 @@ const AdminBusinesses = () => {
                       {business.name}
                     </h3>
                     <p className="mt-2 text-[10px] font-bold uppercase tracking-[0.18em] text-white/35">
-                      User: {business.user?.name ?? 'Unknown'} | ID: {business.id}
+                      User: {business.user?.name ?? 'Unknown'}
                     </p>
                   </div>
 

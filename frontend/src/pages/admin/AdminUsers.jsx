@@ -52,7 +52,7 @@ const AdminUsers = () => {
   };
 
   const handleBanUser = (userId) => {
-    const reason = window.prompt('Optional ban reason:');
+    // const reason = window.prompt('Optional ban reason:');
 
     if (reason === null) {
       return;
@@ -124,7 +124,7 @@ const AdminUsers = () => {
                       {user.name}
                     </h3>
                     <p className="mt-2 text-[10px] font-bold uppercase tracking-[0.18em] text-white/35">
-                      {user.email} | ID: {user.id}
+                      {user.email}
                     </p>
                   </div>
 

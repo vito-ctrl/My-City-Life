@@ -109,7 +109,7 @@ const AdminActivities = () => {
                       {activity.title}
                     </h3>
                     <p className="mt-2 text-[10px] font-bold uppercase tracking-[0.18em] text-white/35">
-                      User: {activity.user?.name ?? 'Unknown'} | ID: {activity.id}
+                      User: {activity.user?.name ?? 'Unknown'}
                     </p>
                   </div>
 
