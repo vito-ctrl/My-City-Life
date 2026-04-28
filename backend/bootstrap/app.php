@@ -30,7 +30,6 @@ return Application::configure(basePath: dirname(__DIR__))
             'api/stripe/webhook', 
         ]);
         
-        // $middleware->statefulApi();
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //

@@ -37,7 +37,6 @@ class User extends Authenticatable implements JWTSubject
         'remember_token'
     ];
 
-    /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable, HasRoles;
     
     protected $guard_name = 'api'; 
@@ -52,11 +51,6 @@ class User extends Authenticatable implements JWTSubject
         return [];
     }
 
-    /**
-     * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
-     */
     protected function casts(): array
     {
         return [

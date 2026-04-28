@@ -26,9 +26,6 @@ const IncomingBookingItem = ({ booking, isProcessing, onConfirm, onCancel }) => 
   return (
     <div className="group bg-white/[0.02] border border-white/5 rounded-[32px] p-6 hover:bg-white/[0.04] hover:border-white/10 transition-all">
       <div className="flex flex-col md:flex-row md:items-center gap-6">
-        <div className="w-full md:w-40 h-28 bg-gradient-to-br from-orange-500/20 to-yellow-500/20 rounded-2xl flex items-center justify-center border border-white/5">
-          <FiUsers size={32} className="text-orange-500/40" />
-        </div>
 
         <div className="flex-1 space-y-3">
           <div className="flex items-center justify-between">

@@ -15,7 +15,7 @@ use App\Http\Controllers\FavoritesController;
 use App\Http\Controllers\Organizer\OrganizerController;
 use App\Http\Controllers\Business\BusinesReservationController;
 
-// ── Auth (Public) ─────────────────────────────────────────────────────────────
+// Auth 
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login',    [AuthController::class, 'login']);
 
@@ -26,7 +26,7 @@ Route::post('/forgot-password', [PasswordResetController::class, 'sendResetLink'
 Route::post('/reset-password',  [PasswordResetController::class, 'resetPassword']);
 
 
-// ── Public Reads ──────────────────────────────────────────────────────────────
+// Public
 Route::get('/activities',      [ActivityController::class, 'index']);
 Route::get('/activities/latest', [ActivityController::class, 'latest']);
 Route::get('/activities/user/all',   [ActivityController::class, 'getUserActivities']);
@@ -39,7 +39,7 @@ Route::get('/businesses/{id}', [BusinessController::class, 'show']);
 Route::get('/comments/{type}/{id}', [CommentController::class, 'index']);
 
 
-// ── Protected Routes (Auth required) ─────────────────────────────────────────
+//  Protected Routes
 Route::middleware(['auth:api', 'not_banned'])->group(function () {
     
     Route::get ('/profile', [AuthController::class, 'getUser']);
@@ -94,15 +94,14 @@ Route::middleware(['auth:api', 'not_banned'])->group(function () {
     Route::post('/reservations/{id}/payment-intent', [BusinesReservationController::class, 'createPaymentIntent']);
     Route::post('/reservations/{id}/payment-sync', [BusinesReservationController::class, 'syncPaymentStatus']);
     
-    // ── Organizer Dashboard ───────────────────────────────────────────────────
+    // Organizer Dashboard
     Route::prefix('organizer')->group(function () {
-        // Summary stats + recent bookings
         Route::get('/dashboard',                    [OrganizerController::class, 'dashboard']);
-        // All incoming bookings (?status=pending|confirmed|cancelled)
+
         Route::get('/bookings',                     [OrganizerController::class, 'bookings']);
-        // Bookings for one specific activity
+
         Route::get('/activities/{id}/bookings',     [OrganizerController::class, 'activityBookings']);
-        // organizer making reservations 
+
         Route::post('/reservation/{id}',     [BusinesReservationController::class, 'StoreReservationItem']);
     
         Route::put('/business/{businessId}/items/{itemId}', [BusinesReservationController::class, 'UpdateReservationItem']);  
@@ -118,7 +117,7 @@ Route::middleware(['auth:api', 'not_banned'])->group(function () {
     Route::get('/notifications/unread-count', [App\Http\Controllers\NotificationController::class, 'unreadCount']);
     Route::post('/notifications/{id}/read',   [App\Http\Controllers\NotificationController::class, 'markAsRead']);
 
-    // Admin moderation
+    // Admin 
     Route::prefix('admin')->middleware('admin')->group(function () {
         Route::get('/activities', [AdminModerationController::class, 'activities']);
         Route::get('/activities/pending', [AdminModerationController::class, 'pendingActivities']);
@@ -137,6 +136,6 @@ Route::middleware(['auth:api', 'not_banned'])->group(function () {
 
 });
 
-// ── Stripe Webhook (No auth — Stripe calls this directly) ─────────────────────
+// Stripe Webhook
 Route::post('stripe/webhook', [BookingController::class, 'webhook'])
     ->withoutMiddleware(['auth:api', \Illuminate\Auth\Middleware\Authenticate::class]);

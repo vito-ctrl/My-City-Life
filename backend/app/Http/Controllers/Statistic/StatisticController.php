@@ -13,15 +13,11 @@ use App\Models\Comment;
 
 class StatisticController extends Controller
 {
-    /**
-     * General statistics for the currently authenticated user.
-     * Shows a summary of all their activities, businesses, bookings, and revenue.
-     */
     public function general()
     {
         $user = JWTAuth::parseToken()->authenticate();
 
-        // ── Activities ──────────────────────────────────────────────────
+        // Activities
         $activityIds = Activity::where('user_id', $user->id)->pluck('id');
         $totalActivities = $activityIds->count();
 
@@ -35,7 +31,7 @@ class StatisticController extends Controller
         $totalCancelledBookings  = (clone $activityBookings)->where('status', 'cancelled')->count();
         $totalRevenue            = (clone $activityBookings)->where('payment_status', 'paid')->sum('amount');
 
-        // ── Businesses ───────────────────────────────────────────────────
+        // Businesses
         $businessIds = Business::where('user_id', $user->id)->pluck('id');
         $totalBusinesses = $businessIds->count();
 
@@ -70,10 +66,6 @@ class StatisticController extends Controller
         ]);
     }
 
-    /**
-     * Specific statistics for a single Activity.
-     * Only the owner of the activity can access this.
-     */
     public function activitySpecific($id)
     {
         $user = JWTAuth::parseToken()->authenticate();
@@ -118,11 +110,7 @@ class StatisticController extends Controller
             ],
         ]);
     }
-
-    /**
-     * Specific statistics for a single Business.
-     * Only the owner of the business can access this.
-     */
+    
     public function businessSpecific($id)
     {
         $user = JWTAuth::parseToken()->authenticate();
