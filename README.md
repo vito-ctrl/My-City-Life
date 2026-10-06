@@ -6,7 +6,6 @@
 
 A web and mobile platform to discover activities, places and unique experiences in any city, and to find people to share them with.
 
-![Status](https://img.shields.io/badge/status-MVP%20in%20progress-orange)
 ![Frontend](https://img.shields.io/badge/frontend-React%20%7C%20Tailwind-61DAFB)
 ![Backend](https://img.shields.io/badge/backend-PHP%20(Laravel)-777BB4)
 ![Database](https://img.shields.io/badge/database-MySQL-4479A1)
